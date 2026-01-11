@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 
@@ -115,7 +115,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
                     {(data as any).airtable_error && (
                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 animate-in slide-in-from-top duration-500">
-                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                            <CircleAlert className="w-5 h-5 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="font-bold text-sm mb-1">에어테이블 저장 실패 안내</p>
                                 <p className="text-xs opacity-90 leading-relaxed">
