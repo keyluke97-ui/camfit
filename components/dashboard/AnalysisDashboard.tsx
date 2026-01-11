@@ -29,9 +29,16 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         setIsDescriptionExpanded((prev: boolean) => !prev);
     };
 
+    // Helper to sanitize technical IDs like input_file_1 into 1번째 이미지
+    const sanitizeText = (text: string) => {
+        if (!text) return text;
+        return text.replace(/input_file_(\d+)(\.png)?/gi, "$1번째 이미지");
+    };
+
     // Helper to render bold text from **markdown**
     const renderBoldText = (text: string) => {
-        const parts = text.split(/(\*\*.*?\*\*)/g);
+        const sanitized = sanitizeText(text);
+        const parts = sanitized.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
                 return <strong key={i} className="font-extrabold text-gray-950 underline decoration-camfit-green/30 decoration-4 underline-offset-2">{part.slice(2, -2)}</strong>;
@@ -171,8 +178,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 <span>추천 한줄 소개</span>
                             </div>
                             <div className="bg-gray-50/80 px-4 py-4 rounded-xl text-gray-900 font-bold border border-gray-200 cursor-pointer hover:bg-white transition-all group"
-                                onClick={() => { navigator.clipboard.writeText(data.one_line_intro || ""); alert("복사되었습니다!"); }}>
-                                <p className="text-[16px]">{data.one_line_intro}</p>
+                                onClick={() => { navigator.clipboard.writeText(sanitizeText(data.one_line_intro || "")); alert("복사되었습니다!"); }}>
+                                <p className="text-[16px]">{sanitizeText(data.one_line_intro)}</p>
                             </div>
                         </div>
 
@@ -187,7 +194,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                             </div>
                             <div className="bg-gradient-to-br from-gray-50 to-white px-5 py-4 rounded-xl text-gray-800 font-medium border border-gray-200 cursor-pointer hover:shadow-md transition-all relative group"
                                 onClick={() => toggleDescription()}>
-                                <p className={`text-[15px] leading-relaxed italic ${isDescriptionExpanded ? "" : "line-clamp-2"}`}>"{data.description}"</p>
+                                <p className={`text-[15px] leading-relaxed italic ${isDescriptionExpanded ? "" : "line-clamp-2"}`}>"{sanitizeText(data.description)}"</p>
                             </div>
                         </div>
                     </div>

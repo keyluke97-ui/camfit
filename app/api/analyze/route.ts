@@ -22,7 +22,8 @@ export async function POST(req: Request) {
     try {
         const formData = await req.formData();
         const images = formData.getAll("images") as File[];
-        const campingName = formData.get("campingName") as string;
+        const campingName = formData.get("campingName") as string || "알 수 없는 캠핑장";
+        const address = formData.get("address") as string || "";
 
         // Parse tags
         const leisureTags = JSON.parse(formData.get("leisureTags") as string || "[]");
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
 
             # CONTEXT:
             - Camping Name: ${campingName}
+            - Address (Location): ${address}
             - Tags: ${[...leisureTags, ...facilityTags, ...activityTags].join(", ")}
             - Photo Count: ${images.length}
 
@@ -72,7 +74,10 @@ export async function POST(req: Request) {
                - Hygiene: Cleanliness, maintenance state.
                - Contents: Activities, fun factors, facilities.
                - Season: Seasonal appeal (snow, autumn, water, etc).
-            5. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by the EXACT labels provided (\`input_file_1.png\`, \`input_file_2.png\`, etc.). This is critical for matching.
+            5. **IMAGE LABELING (CRITICAL)**: 
+               - When referring to specific images in 'marketing_comment', 'evaluation', 'description', or 'one_line_intro', ALWAYS use friendly labels like "1번째 이미지", "2번째 이미지", etc.
+               - DO NOT use technical labels like "input_file_1.png" in these text fields.
+            6. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by the EXACT technical labels provided (\`input_file_1.png\`, \`input_file_2.png\`, etc.) ONLY in the "filename" field for matching.
 
             # OUTPUT FORMAT (Strict JSON Only):
             {

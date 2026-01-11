@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Script from "next/script";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { TagGroup } from "@/components/ui/TagGroup";
-import { UploadCloud, Loader2, X, Image as ImageIcon } from "lucide-react";
+import { UploadCloud, Loader2, X, Image as ImageIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UploadSectionProps {
@@ -23,6 +24,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
     const [isDragOver, setIsDragOver] = useState(false);
     // Removed local files state
     const [campingName, setCampingName] = useState("");
+    const [address, setAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -78,6 +80,20 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         });
     };
 
+    const handleAddressSearch = () => {
+        // @ts-ignore
+        if (typeof window !== "undefined" && window.daum && window.daum.Postcode) {
+            // @ts-ignore
+            new window.daum.Postcode({
+                oncomplete: function (data: any) {
+                    setAddress(data.address);
+                }
+            }).open();
+        } else {
+            alert("주소 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (files.length === 0) return;
@@ -91,6 +107,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             const formData = new FormData();
             compressedFiles.forEach(file => formData.append("images", file));
             formData.append("campingName", campingName);
+            formData.append("address", address);
             formData.append("leisureTags", JSON.stringify(leisureTags));
             formData.append("facilityTags", JSON.stringify(facilityTags));
             formData.append("activityTags", JSON.stringify(activityTags));
@@ -138,9 +155,30 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
 
             <form className="space-y-8" onSubmit={handleSubmit}>
                 {/* ... (Rest of the form UI: Name Input, TagGroup, File Upload) ... */}
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700">캠핑장 이름</label>
-                    <Input placeholder="예: 포천 산정호수 글램핑" value={campingName} onChange={(e) => setCampingName(e.target.value)} required className="bg-white" />
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700">캠핑장 이름</label>
+                        <Input placeholder="예: 포천 산정호수 글램핑" value={campingName} onChange={(e) => setCampingName(e.target.value)} required className="bg-white" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700">캠핑장 주소</label>
+                        <div className="relative group">
+                            <Input
+                                placeholder="돋보기 버튼을 눌러 주소를 검색해주세요"
+                                value={address}
+                                readOnly
+                                onClick={handleAddressSearch}
+                                className="bg-white pr-12 cursor-pointer group-hover:border-camfit-green transition-colors"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddressSearch}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-camfit-green transition-colors"
+                            >
+                                <Search className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div className="space-y-6 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                     <TagGroup label="주변레저" options={LEISURE_OPTIONS} selected={leisureTags} onChange={setLeisureTags} />
@@ -182,6 +220,10 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                     {isLoading ? "AI 시니어 에디터가 분석중입니다..." : "AI 정밀 분석 시작하기"}
                 </Button>
             </form>
+            <Script
+                src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+                strategy="lazyOnload"
+            />
         </GlassCard>
     );
 }
