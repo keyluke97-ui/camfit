@@ -110,7 +110,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V2)</h2>
+                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V5-DEBUG)</h2>
                     </div>
 
                     {(data as any).airtable_error && (

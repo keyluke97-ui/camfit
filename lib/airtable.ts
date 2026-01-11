@@ -15,7 +15,7 @@ export async function saveAnalysisResult(data: AnalysisReport) {
     const base = getBase();
     if (!base) {
         console.warn("Airtable credentials missing. Skipping save.");
-        return null;
+        return { success: false, error: "에어테이블 설정값(Key/ID)이 Vercel 대시보드에 등록되지 않았습니다. (V5)" };
     }
 
     const getBestUrl = (rank: number) => {
@@ -71,8 +71,13 @@ export async function saveAnalysisResult(data: AnalysisReport) {
         console.log("Airtable success: Record created with ID", records[0].getId());
         return { success: true, id: records[0].getId() };
     } catch (error: any) {
-        const errorMsg = error.message || "Unknown Airtable Error";
-        console.error("Critical Airtable Error Details:", errorMsg);
-        return { success: false, error: errorMsg };
+        console.error("Airtable Debug Error:", error);
+        let errorMsg = error.message || "Unknown Airtable Error";
+
+        // Extract more specifics if available
+        if (error.error) errorMsg += ` (${error.error})`;
+        if (error.statusCode) errorMsg += ` [Status: ${error.statusCode}]`;
+
+        return { success: false, error: `${errorMsg} (V5-SDK)` };
     }
 }
