@@ -44,6 +44,17 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const getFileUrl = (filename: string) => {
         if (!filename) return null;
         const normalized = filename.toLowerCase().trim();
+
+        // 1. Match by index-based identifier (e.g., input_file_1.png)
+        const match = normalized.match(/input_file_(\d+)/i);
+        if (match && match[1]) {
+            const index = parseInt(match[1]) - 1;
+            if (files[index]) {
+                return URL.createObjectURL(files[index]);
+            }
+        }
+
+        // 2. Fallback: Match by original filename
         const matchingFile = files.find(f => {
             const fName = f.name.toLowerCase().trim();
             return fName === normalized || fName.split('.')[0] === normalized.split('.')[0];
@@ -54,13 +65,15 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     if (isLoading) {
         return (
             <GlassCard className="flex flex-col items-center justify-center min-h-[400px] animate-pulse">
-                <div className="w-16 h-16 border-4 border-camfit-green border-t-transparent rounded-full animate-spin mb-4" />
-                <h3 className="text-xl font-bold text-gray-700">AI Senior Editor가 분석 중입니다...</h3>
-                <p className="text-gray-500 mt-2">Vibe, Hygiene, Contents, Season 정밀 진단 중</p>
-                <div className="flex gap-2 mt-4">
-                    <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0s' }}></span>
-                    <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                    <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 border-4 border-camfit-green border-t-transparent rounded-full animate-spin mb-4" />
+                    <h3 className="text-xl font-bold text-gray-700">AI Senior Editor가 분석 중입니다...</h3>
+                    <p className="text-gray-500 mt-2">Vibe, Hygiene, Contents, Season 정밀 진단 중</p>
+                    <div className="flex gap-2 mt-4">
+                        <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0s' }}></span>
+                        <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                        <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                    </div>
                 </div>
             </GlassCard>
         );
@@ -211,7 +224,11 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                     ) : (
                                         <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
                                             < BarChart3 className="w-10 h-10 mb-2 opacity-30" />
-                                            <span className="text-[10px] text-center">{item.filename || "No Image"}</span>
+                                            <span className="text-[10px] text-center font-medium">
+                                                {item.filename?.match(/input_file_(\d+)/i)
+                                                    ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
+                                                    : (item.filename || "매칭 실패")}
+                                            </span>
                                         </div>
                                     )}
                                     <div className="absolute bottom-2 right-2">

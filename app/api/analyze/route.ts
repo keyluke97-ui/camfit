@@ -38,14 +38,18 @@ export async function POST(req: Request) {
             return NextResponse.json(MOCK_V2_RESPONSE);
         }
 
-        const imageParts = await Promise.all(
-            images.map(async (file) => ({
+        const payloadParts: any[] = [];
+        for (let i = 0; i < images.length; i++) {
+            const file = images[i];
+            const base64Data = Buffer.from(await file.arrayBuffer()).toString("base64");
+            payloadParts.push({ text: `input_file_${i + 1}.png` });
+            payloadParts.push({
                 inlineData: {
-                    data: Buffer.from(await file.arrayBuffer()).toString("base64"),
+                    data: base64Data,
                     mimeType: file.type,
                 }
-            }))
-        );
+            });
+        }
 
         const prompt = `
             # ROLE: Senior Growth Editor of Camfit (Korea's No.1 Camping Platform)
@@ -68,7 +72,7 @@ export async function POST(req: Request) {
                - Hygiene: Cleanliness, maintenance state.
                - Contents: Activities, fun factors, facilities.
                - Season: Seasonal appeal (snow, autumn, water, etc).
-            5. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by their EXACT original filename provided in the context. This is critical for matching.
+            5. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by the EXACT labels provided (\`input_file_1.png\`, \`input_file_2.png\`, etc.). This is critical for matching.
 
             # OUTPUT FORMAT (Strict JSON Only):
             {
@@ -100,7 +104,7 @@ export async function POST(req: Request) {
                 console.log(`Attempting analysis with model: ${modelName}`);
                 const model = genAI.getGenerativeModel({ model: modelName });
 
-                const result = await model.generateContent([prompt, ...imageParts]);
+                const result = await model.generateContent([prompt, ...payloadParts]);
                 const response = await result.response;
                 const text = response.text();
 

@@ -164,6 +164,12 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                                 {files.map((file, idx) => (
                                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm bg-gray-100">
                                         <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)} />
+
+                                        {/* Number Badge */}
+                                        <div className="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 border border-white/20">
+                                            {idx + 1}
+                                        </div>
+
                                         <button type="button" onClick={() => removeFile(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                                     </div>
                                 ))}
