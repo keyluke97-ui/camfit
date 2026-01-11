@@ -69,14 +69,10 @@ export async function saveAnalysisResult(data: AnalysisReport) {
         const records = await table.create([{ fields }], { typecast: true });
 
         console.log("Airtable success: Record created with ID", records[0].getId());
-        return records[0].getId();
+        return { success: true, id: records[0].getId() };
     } catch (error: any) {
-        console.error("Critical Airtable Error Details:", {
-            message: error.message,
-            statusCode: error.statusCode,
-            error: error.error,
-            details: error.details
-        });
-        return null;
+        const errorMsg = error.message || "Unknown Airtable Error";
+        console.error("Critical Airtable Error Details:", errorMsg);
+        return { success: false, error: errorMsg };
     }
 }

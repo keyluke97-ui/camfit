@@ -113,6 +113,20 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V2)</h2>
                     </div>
 
+                    {(data as any).airtable_error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 animate-in slide-in-from-top duration-500">
+                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-sm mb-1">에어테이블 저장 실패 안내</p>
+                                <p className="text-xs opacity-90 leading-relaxed">
+                                    분석은 성공했으나 에어테이블 기록에 실패했습니다. <br />
+                                    <strong>원인:</strong> {(data as any).airtable_error} <br />
+                                    <span className="mt-1 block opacity-80">※ 에어테이블의 필드 이름이나 권한 설정을 확인해 주세요.</span>
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                         {/* Strategy Column */}
                         <div className="space-y-6">

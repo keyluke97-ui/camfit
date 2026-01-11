@@ -154,13 +154,14 @@ export async function POST(req: Request) {
 
         // Sequential Process: Save to Airtable before returning
         console.log("Saving results to Airtable for:", campingName);
-        const airtableRecordId = await saveAnalysisResult(finalReport);
+        const airtableResult = await saveAnalysisResult(finalReport);
 
-        if (airtableRecordId) {
-            console.log("✅ Airtable Save Success, ID:", airtableRecordId);
+        if (airtableResult?.success) {
+            console.log("✅ Airtable Save Success, ID:", airtableResult.id);
         } else {
-            console.warn("❌ Airtable Save Failed. Check server logs for details.");
-            // We still return the report so the user sees it in UI
+            console.warn("❌ Airtable Save Failed:", airtableResult?.error);
+            // Attach error to result so UI can show it
+            (finalReport as any).airtable_error = airtableResult?.error || "Airtable Save Failed";
         }
 
         return NextResponse.json(finalReport);
