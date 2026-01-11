@@ -68,93 +68,80 @@ export async function POST(req: Request) {
             # INSTRUCTIONS:
             1. **LANGUAGE**: ALL OUTPUT MUST BE IN KOREAN (한국어).
             2. **TONE**: Professional, objective, yet encouraging (Smart & Sharp).
-            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and REQUIRED bold text (**) for critical action items (e.g., **고급스러운 실사 위주 썸네일 교체**, **개별 화장실 강조**).
+            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and REQUIRED bold text (**) for critical action items.
             4. **CRITERIA**:
-               - Vibe: Visual aesthetics, emotional impact.
-               - Hygiene: Cleanliness, maintenance state.
-               - Contents: Activities, fun factors, facilities.
-               - Season: Seasonal appeal (snow, autumn, water, etc).
-            5. **IMAGE LABELING (CRITICAL)**: 
-               - When referring to specific images in 'marketing_comment', 'evaluation', 'description', or 'one_line_intro', ALWAYS use friendly labels like "1번째 이미지", "2번째 이미지", etc.
-               - DO NOT use technical labels like "input_file_1.png" in these text fields.
-            6. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by the EXACT technical labels provided (\`input_file_1.png\`, \`input_file_2.png\`, etc.) ONLY in the "filename" field for matching.
+               - Vibe: 시각적 압도 (Visual aesthetics)
+               - Hygiene: 시설 청결 (Cleanliness)
+               - Contents: 경험 가치 (Fun factors, facilities)
+               - Season: 계절감 (Seasonal appeal)
+            5. **IMAGE LABELING**: Use friendly labels like "1번째 이미지".
+            6. **RANKING**: Select top 3 photos. Use technical labels (\`input_file_1.png\`, etc.) ONLY in "filename".
 
             # OUTPUT FORMAT (Strict JSON Only):
             {
                 "total_score": (0-100),
                 "evaluation": { 
-                    "vibe": "Evaluation in Korean...", 
-                    "hygiene": "Evaluation in Korean...", 
-                    "contents": "Evaluation in Korean...", 
-                    "season": "Evaluation in Korean..." 
+                    "vibe": "Evaluation...", 
+                    "vibe_score": (0-100),
+                    "hygiene": "Evaluation...", 
+                    "hygiene_score": (0-100),
+                    "contents": "Evaluation...", 
+                    "contents_score": (0-100),
+                    "season": "Evaluation...", 
+                    "season_score": (0-100)
                 },
                 "ranking": [ 
-                    { "rank": 1, "filename": "exact_filename_of_image", "category": "Category", "reason": "Reason in Korean" },
-                    { "rank": 2, "filename": "exact_filename_of_image", "category": "Category", "reason": "Reason in Korean" },
-                    { "rank": 3, "filename": "exact_filename_of_image", "category": "Category", "reason": "Reason in Korean" }
+                    { "rank": 1, "filename": "exact_filename", "category": "Category", "reason": "Reason" }
                 ],
-                "marketing_comment": "Strategic advice in Korean using markdown listing format.",
+                "marketing_comment": "Strategic advice...",
                 "upsell_needed": boolean,
-                "description": "An emotional, SEO-optimized description of the campsite in Korean.",
-                "one_line_intro": "A catchy one-line intro (max 23 chars) in Korean."
+                "description": "SEO description...",
+                "one_line_intro": "Catchy intro (max 23 chars)"
             }
         `;
 
         let finalResult = null;
         let lastError = null;
 
-        // --- Model Fallback Loop ---
         for (const modelName of CANDIDATE_MODELS) {
             try {
-                console.log(`Attempting analysis with model: ${modelName}`);
                 const model = genAI.getGenerativeModel({ model: modelName });
-
                 const result = await model.generateContent([prompt, ...payloadParts]);
                 const response = await result.response;
                 const text = response.text();
 
                 if (text) {
                     finalResult = text;
-                    break; // Success! Exit loop.
+                    break;
                 }
             } catch (e: any) {
-                console.warn(`Model ${modelName} failed:`, e.message);
                 lastError = e;
-                // Verify if error is 404 (Model not found) or 503 (Overloaded) and continue.
-                // If it's 400 (Bad Request), it might be prompt issue, but we retry anyway.
                 continue;
             }
         }
 
-        if (!finalResult) {
-            throw lastError || new Error("All AI models failed to respond.");
-        }
+        if (!finalResult) throw lastError || new Error("AI Analysis Failed");
 
-        // --- Parsing ---
         let jsonString = finalResult.replace(/```json/g, "").replace(/```/g, "").trim();
         const firstBrace = jsonString.indexOf('{');
         const lastBrace = jsonString.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1) {
-            jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-        }
+        if (firstBrace !== -1 && lastBrace !== -1) jsonString = jsonString.substring(firstBrace, lastBrace + 1);
 
-        let aiData: AnalysisReport;
-        try {
-            aiData = JSON.parse(jsonString) as AnalysisReport;
-        } catch (e) {
-            throw new Error(`JSON Parsing Failed. Raw: ${finalResult.substring(0, 50)}...`);
-        }
+        const aiData = JSON.parse(jsonString) as AnalysisReport;
 
         // Attach Context
         const finalReport: AnalysisReport = {
             ...aiData,
             campingName,
+            address,
             tags: { leisure: leisureTags, facility: facilityTags, activity: activityTags },
             photoCount: images.length
         };
 
-        // Save to Airtable
-        saveAnalysisResult(finalReport);
+        // Sequential Process: Save to Airtable before returning
+        console.log("Saving results to Airtable...");
+        const airtableRecordId = await saveAnalysisResult(finalReport);
+        console.log("Airtable Save Success, ID:", airtableRecordId);
 
         return NextResponse.json(finalReport);
 

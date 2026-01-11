@@ -74,8 +74,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             <GlassCard className="flex flex-col items-center justify-center min-h-[400px] animate-pulse">
                 <div className="flex flex-col items-center">
                     <div className="w-16 h-16 border-4 border-camfit-green border-t-transparent rounded-full animate-spin mb-4" />
-                    <h3 className="text-xl font-bold text-gray-700">AI Senior Editor가 분석 중입니다...</h3>
-                    <p className="text-gray-500 mt-2">Vibe, Hygiene, Contents, Season 정밀 진단 중</p>
+                    <h3 className="text-xl font-bold text-gray-700">AI가 캠핑장을 정밀 분석 중입니다 (약 1분 소요)...</h3>
+                    <p className="text-gray-500 mt-2">비주얼, 청결, 콘텐츠, 계절감 정밀 진단 중</p>
                     <div className="flex gap-2 mt-4">
                         <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0s' }}></span>
                         <span className="w-2 h-2 rounded-full bg-camfit-green animate-bounce" style={{ animationDelay: '0.2s' }}></span>
@@ -110,56 +110,53 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과</h2>
+                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V2)</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-                        {/* Column 1: Intro & Strategy (7/12) */}
-                        <div className="xl:col-span-7 space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        {/* Strategy Column */}
+                        <div className="space-y-6">
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-950 leading-tight">
                                 {isHighQuality ? "Camfit A-Grade 인증! 🏆" : "조금만 더 다듬으면 완벽해요! 💪"}
                             </h1>
 
-                            {/* Editor's Strategy Card */}
                             <div className="bg-emerald-50/40 rounded-2xl p-6 border border-emerald-100 shadow-sm">
                                 <div className="flex items-center gap-3 mb-4 text-emerald-900 font-bold text-lg">
                                     <TrendingUp className="w-5 h-5" />
                                     <h3>에디터의 핵심 개선 전략</h3>
                                 </div>
-                                <div className="text-gray-900 leading-relaxed whitespace-pre-wrap text-[17px] font-medium tracking-tight">
+                                <div className="text-gray-900 leading-relaxed whitespace-pre-wrap text-[17px] font-medium tracking-tight h-auto">
                                     {renderBoldText(data.marketing_comment)}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Column 2: Score & Metrics (5/12) */}
-                        <div className="xl:col-span-5 flex flex-col gap-6">
-                            {/* Total Score Display - Compact */}
-                            <div className="flex flex-col items-center bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
-                                <div className="relative w-40 h-40 flex items-center justify-center">
+                        {/* Scores Column */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-500">종합 점수</span>
+                                    <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
+                                </div>
+                                <div className="relative w-32 h-32">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                                         <circle cx="50" cy="50" r="44" fill="none" stroke="#e5e7eb" strokeWidth="8" />
-                                        <circle cx="50" cy="50" r="44" fill="none" stroke="#01DF82" strokeWidth="8"
+                                        <circle cx="50" cy="50" r="44" fill="none" stroke="#01DF82" strokeWidth="10"
                                             strokeDasharray={`${score * 2.76} 276`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
                                     </svg>
-                                    <div className="absolute flex flex-col items-center">
-                                        <span className="text-sm font-bold text-gray-500 mb-0">Total Score</span>
-                                        <span className="text-5xl font-black text-gray-950 tracking-tighter">{score}</span>
-                                    </div>
                                 </div>
                             </div>
 
-                            {/* Metrics Mini-Grid */}
                             <div className="grid grid-cols-2 gap-3">
                                 {metrics.map((m) => (
-                                    <div key={m.id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col">
-                                        <div className="flex flex-col">
-                                            <span className="text-[13px] font-bold text-gray-900 mb-0.5">{m.label}</span>
-                                            <span className="text-[10px] text-gray-400 font-medium leading-[1.1] mb-2">{m.description}</span>
+                                    <div key={m.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                                        <div>
+                                            <div className="text-[14px] font-bold text-gray-900">{m.label}</div>
+                                            <div className="text-[11px] text-gray-400 font-medium">{m.description}</div>
                                         </div>
-                                        <div className="flex items-end gap-1">
-                                            <span className="text-xl font-black text-gray-900">{m.score}</span>
-                                            <span className="text-[10px] text-gray-400 font-bold pb-1">/100</span>
+                                        <div className="flex items-end gap-1 mt-2">
+                                            <span className="text-2xl font-black text-gray-900">{m.score}</span>
+                                            <span className="text-[11px] text-gray-400 font-bold pb-1">/100</span>
                                         </div>
                                     </div>
                                 ))}
@@ -170,21 +167,21 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                     <div className="my-8 border-t border-gray-100" />
 
                     {/* Copy Sections */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* One-Line Intro */}
-                        <div className="md:col-span-1 space-y-3">
+                        <div className="space-y-3">
                             <div className="flex items-center gap-2 text-[15px] text-gray-700 font-bold">
                                 <Copy className="w-4 h-4 text-camfit-green" />
                                 <span>추천 한줄 소개</span>
                             </div>
-                            <div className="bg-gray-50/80 px-4 py-4 rounded-xl text-gray-900 font-bold border border-gray-200 cursor-pointer hover:bg-white transition-all group"
+                            <div className="bg-gray-50/80 px-4 py-4 rounded-xl text-gray-900 font-bold border border-gray-200 cursor-pointer hover:bg-white transition-all group h-auto min-h-[80px] flex items-center"
                                 onClick={() => { navigator.clipboard.writeText(sanitizeText(data.one_line_intro || "")); alert("복사되었습니다!"); }}>
                                 <p className="text-[16px]">{sanitizeText(data.one_line_intro || "")}</p>
                             </div>
                         </div>
 
                         {/* Full Description */}
-                        <div className="md:col-span-2 space-y-3">
+                        <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-[15px] text-gray-700 font-bold">
                                     <Sparkles className="w-4 h-4 text-camfit-green" />
@@ -192,9 +189,9 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 </div>
                                 <span className="text-[11px] text-camfit-green font-bold bg-camfit-green/10 px-2 py-0.5 rounded-full">✨ 클릭하여 전체보기</span>
                             </div>
-                            <div className="bg-gradient-to-br from-gray-50 to-white px-5 py-4 rounded-xl text-gray-800 font-medium border border-gray-200 cursor-pointer hover:shadow-md transition-all relative group"
+                            <div className="bg-gradient-to-br from-gray-50 to-white px-5 py-4 rounded-xl text-gray-800 font-medium border border-gray-200 cursor-pointer hover:shadow-md transition-all relative group h-auto min-h-[80px]"
                                 onClick={() => toggleDescription()}>
-                                <p className={`text-[15px] leading-relaxed italic ${isDescriptionExpanded ? "" : "line-clamp-2"}`}>"{sanitizeText(data.description)}"</p>
+                                <p className={`text-[15px] leading-relaxed italic ${isDescriptionExpanded ? "" : "line-clamp-3"}`}>"{sanitizeText(data.description)}"</p>
                             </div>
                         </div>
                     </div>

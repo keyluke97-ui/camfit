@@ -13,9 +13,13 @@ export interface PhotoRanking {
 
 export interface AnalysisEvaluation {
     vibe: string;
+    vibe_score?: number;
     hygiene: string;
+    hygiene_score?: number;
     contents: string;
+    contents_score?: number;
     season: string;
+    season_score?: number;
 }
 
 export interface AnalysisReport {
@@ -25,7 +29,8 @@ export interface AnalysisReport {
     marketing_comment: string;
     upsell_needed: boolean;
     description: string;
-    one_line_intro?: string; // New V2 Feature
+    one_line_intro?: string;
+    address?: string; // New V2 context
     // Metadata to save context
     campingName?: string;
     tags?: {

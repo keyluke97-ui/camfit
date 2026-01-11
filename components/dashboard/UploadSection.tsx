@@ -218,7 +218,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 </div>
 
                 <Button className="w-full h-14 text-lg font-bold shadow-camfit-green/20 hover:shadow-camfit-green/40 rounded-xl" type="submit" disabled={files.length === 0 || isLoading} isLoading={isLoading}>
-                    {isLoading ? "AI 시니어 에디터가 분석중입니다..." : "AI 정밀 분석 시작하기"}
+                    {isLoading ? "AI가 캠핑장을 정밀 분석 중입니다 (약 1분 소요)..." : "AI 정밀 분석 시작하기"}
                 </Button>
             </form>
             <Script
