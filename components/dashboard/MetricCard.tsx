@@ -7,18 +7,26 @@ interface MetricCardProps {
     label: string;
     score: number;
     comment: string;
+    description?: string;
     trend: "up" | "down" | "neutral";
     metricId?: AnalysisMetric;
 }
 
-export function MetricCard({ label, score, comment, trend, metricId }: MetricCardProps) {
+export function MetricCard({ label, score, comment, description, trend, metricId }: MetricCardProps) {
     return (
         <GlassCard className="flex flex-col justify-between h-full space-y-4" hoverEffect>
-            <div className="flex justify-between items-start">
-                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">{label}</h4>
-                {trend === "up" && <TrendingUp className="w-4 h-4 text-camfit-green" />}
-                {trend === "down" && <TrendingDown className="w-4 h-4 text-red-400" />}
-                {trend === "neutral" && <Minus className="w-4 h-4 text-gray-400" />}
+            <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-start">
+                    <h4 className="text-sm font-bold text-gray-900 tracking-tight">{label}</h4>
+                    {trend === "up" && <TrendingUp className="w-4 h-4 text-camfit-green" />}
+                    {trend === "down" && <TrendingDown className="w-4 h-4 text-red-400" />}
+                    {trend === "neutral" && <Minus className="w-4 h-4 text-gray-400" />}
+                </div>
+                {description && (
+                    <p className="text-[11px] text-gray-500 font-medium leading-tight">
+                        {description}
+                    </p>
+                )}
             </div>
 
             <div>

@@ -146,7 +146,10 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                             <div className="grid grid-cols-2 gap-3">
                                 {metrics.map((m) => (
                                     <div key={m.id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col">
-                                        <span className="text-[13px] font-bold text-gray-500 mb-1">{m.label}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-bold text-gray-900 mb-0.5">{m.label}</span>
+                                            <span className="text-[10px] text-gray-400 font-medium leading-[1.1] mb-2">{m.description}</span>
+                                        </div>
                                         <div className="flex items-end gap-1">
                                             <span className="text-xl font-black text-gray-900">{m.score}</span>
                                             <span className="text-[10px] text-gray-400 font-bold pb-1">/100</span>
