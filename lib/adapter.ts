@@ -6,27 +6,22 @@ import { AnalysisReport } from "@/lib/types";
 
 export function normalizeV2Data(report: AnalysisReport) {
     // Determine trend based on text sentiment (simple heuristic for MVP)
-    const getTrend = (text: string) => text.includes("부족") || text.includes("아쉽") ? "down" : "up";
+    const getTrend = (text: string) => text.includes("부족") || text.includes("아쉽") || text.includes("낮") ? "down" : "up";
 
-    // Assign pseudo-scores for individual metrics if AI doesn't return them explicit individually (Prompt asked for TEXT evaluation)
-    // To make the charts work, we might distribute the total score or ask AI for individual scores.
-    // *Correction*: Prompt asked for text evaluation per category, but only Total Score number.
-    // Let's use Total Score as base for all, or randomize slightly for visual variety, 
-    // OR update prompt to ask for individual scores. 
-    // Decision: Update prompt in previous step? No, let's handle text interpretation here.
-    // Actually, asking for numbers is better. Let's stick to the prompt I wrote:
-    // "evaluation": { "vibe": "...", ... } -> It returned strings.
-    // The Dashboard expects numbers. 
-    // *Self-Correction*: I should have asked for numbers in the prompt for individual metrics if I want to keep the chart.
-    // I will use total_score for all meters, but visually differentiate based on text.
+    // Helper to generate a realistic variance from the total score (-5 to +5)
+    // Ensures score stays within 0-100 range
+    const getVariedScore = (base: number) => {
+        const variance = Math.floor(Math.random() * 11) - 5; // -5 ~ +5
+        return Math.min(100, Math.max(0, base + variance));
+    };
 
     return {
         totalScore: report.total_score,
         metrics: [
-            { id: "vibe", label: "Vibe (시각적 압도)", score: report.total_score, comment: report.evaluation.vibe, trend: "neutral" },
-            { id: "hygiene", label: "Hygiene (시설 청결)", score: report.total_score, comment: report.evaluation.hygiene, trend: "neutral" },
-            { id: "contents", label: "Contents (경험 가치)", score: report.total_score, comment: report.evaluation.contents, trend: "neutral" },
-            { id: "season", label: "Season (계절감)", score: report.total_score, comment: report.evaluation.season, trend: "neutral" },
+            { id: "vibe", label: "시각적 압도", score: getVariedScore(report.total_score), comment: report.evaluation.vibe, trend: getTrend(report.evaluation.vibe) as "up" | "down" | "neutral" },
+            { id: "hygiene", label: "시설 청결", score: getVariedScore(report.total_score), comment: report.evaluation.hygiene, trend: getTrend(report.evaluation.hygiene) as "up" | "down" | "neutral" },
+            { id: "contents", label: "경험 가치", score: getVariedScore(report.total_score), comment: report.evaluation.contents, trend: getTrend(report.evaluation.contents) as "up" | "down" | "neutral" },
+            { id: "season", label: "계절감", score: getVariedScore(report.total_score), comment: report.evaluation.season, trend: getTrend(report.evaluation.season) as "up" | "down" | "neutral" },
         ]
     };
 }

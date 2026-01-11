@@ -44,78 +44,83 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const isHighQuality = score >= 80;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700 pb-24">
+        <div className="space-y-8 animate-in fade-in duration-700 pb-32">
             {/* Header Section */}
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100/50 backdrop-blur-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-camfit-green/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+            <div className="bg-white rounded-3xl p-8 md:p-10 shadow-xl border border-gray-100/50 backdrop-blur-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-camfit-green/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 mb-8">
                         <Sparkles className="w-6 h-6 text-camfit-green animate-pulse" />
                         <h2 className="text-xl font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과</h2>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-                        <div className="flex-1 space-y-6">
-                            <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
+                    <div className="flex flex-col xl:flex-row items-start justify-between gap-12 sm:gap-16">
+                        <div className="flex-1 space-y-8 w-full">
+                            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
                                 {isHighQuality ? "Camfit A-Grade 인증! 🏆" : "조금만 더 다듬으면 완벽해요! 💪"}
                             </h1>
 
                             {/* Editor's Strategy */}
-                            <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100">
-                                <div className="flex items-center gap-2 mb-3 text-emerald-700 font-bold text-lg">
-                                    <TrendingUp className="w-5 h-5" />
+                            <div className="bg-emerald-50/60 rounded-3xl p-8 border border-emerald-100/80 shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100/50 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none"></div>
+                                <div className="flex items-center gap-3 mb-5 text-emerald-800 font-bold text-xl relative z-10">
+                                    <TrendingUp className="w-6 h-6" />
                                     <h3>에디터의 핵심 개선 전략</h3>
                                 </div>
-                                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-base">
+                                <div className="text-gray-800 leading-loose whitespace-pre-wrap text-lg font-medium relative z-10 strategy-content">
                                     {data.marketing_comment}
                                 </div>
                             </div>
 
                             {/* One-Line Intro Recommendation */}
                             {data.one_line_intro && (
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
-                                        <Copy className="w-4 h-4" />
+                                <div className="space-y-3 pt-2">
+                                    <div className="flex items-center gap-2 text-base text-gray-600 font-bold">
+                                        <Copy className="w-5 h-5 text-camfit-green" />
                                         <span>추천 한줄 소개 (23자 이내)</span>
                                     </div>
-                                    <div className="bg-gray-50 px-4 py-3 rounded-xl text-gray-800 font-bold border border-gray-200 shadow-sm flex items-center justify-between group cursor-pointer hover:bg-gray-100 transition-colors"
+                                    <div className="bg-gray-50 px-6 py-5 rounded-2xl text-gray-800 font-bold border border-gray-200 shadow-sm flex items-center justify-between group cursor-pointer hover:bg-gray-100 transition-colors"
                                         onClick={() => { navigator.clipboard.writeText(data.one_line_intro || ""); alert("한줄 소개가 복사되었습니다!"); }}>
-                                        <span>{data.one_line_intro}</span>
-                                        <Copy className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <span className="text-lg">{data.one_line_intro}</span>
+                                        <div className="flex items-center gap-2 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                                            <Copy className="w-4 h-4" />
+                                            복사하기
+                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Total Score Gauge */}
-                        <div className="flex-shrink-0 relative mt-4 md:mt-0">
-                            <div className="w-56 h-56 relative flex items-center justify-center">
+                        {/* Total Score Gauge - Increased spacing/margin to prevent overlap */}
+                        <div className="flex-shrink-0 relative mt-8 xl:mt-0 self-center xl:self-start mx-auto">
+                            <div className="w-64 h-64 relative flex items-center justify-center bg-white rounded-full shadow-2xl shadow-gray-100 border border-gray-50">
                                 {/* Simple SVG Gauge for Viz */}
-                                <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" strokeWidth="10" />
-                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#01DF82" strokeWidth="10"
-                                        strokeDasharray={`${score * 2.83} 283`} strokeLinecap="round" className="drop-shadow-lg transition-all duration-1000 ease-out" />
+                                <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 p-4">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f0fdf4" strokeWidth="8" />
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#01DF82" strokeWidth="8"
+                                        strokeDasharray={`${score * 2.64} 264`} strokeLinecap="round" className="drop-shadow-md transition-all duration-1000 ease-out" />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Score</span>
-                                    <span className="text-6xl font-black text-gray-900 tracking-tighter">{score}</span>
+                                    <span className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Total Score</span>
+                                    <span className="text-7xl font-black text-gray-900 tracking-tighter" style={{ textShadow: "0 2px 10px rgba(1, 223, 130, 0.2)" }}>{score}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Description Guide Section */}
-                    <div className="mt-10 pt-8 border-t border-gray-100">
-                        <div className="mb-4">
-                            <h3 className="text-xl font-bold text-gray-900">캠핑장 소개글을 이렇게 적어주세요!</h3>
-                            <p className="text-sm text-camfit-green mt-1">✨ AI가 작성한 글로 사실과 맞는지 확인 후 복사해주세요!</p>
+                    <div className="mt-12 pt-10 border-t border-gray-100">
+                        <div className="mb-6 space-y-2">
+                            <h3 className="text-2xl font-bold text-gray-900">캠핑장 소개글을 이렇게 적어주세요!</h3>
+                            <p className="text-base text-camfit-green font-medium">✨ AI가 작성한 글로 사실과 맞는지 확인 후 복사해주세요!</p>
                         </div>
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-gray-700 leading-loose text-lg font-medium relative group cursor-pointer hover:bg-gray-100 transition-all shadow-inner"
+                        <div className="bg-gradient-to-br from-gray-50 to-white p-8 rounded-3xl border border-gray-200 text-gray-700 leading-loose text-xl font-medium relative group cursor-pointer hover:shadow-lg transition-all shadow-sm"
                             onClick={() => { navigator.clipboard.writeText(data.description); alert("소개글이 복사되었습니다!"); }}>
-                            <Quote className="w-8 h-8 text-gray-300 absolute -top-3 -left-2 bg-white rounded-full p-1" />
+                            <Quote className="w-10 h-10 text-gray-200 absolute -top-4 -left-2 bg-white rounded-full p-2 border border-gray-100" />
                             "{data.description}"
-                            <div className="absolute top-4 right-4 bg-white/80 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold text-gray-500 shadow-sm">
+                            <div className="absolute top-6 right-6 bg-white shadow-md p-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 text-sm font-bold text-gray-600 flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0">
+                                <Copy className="w-4 h-4" />
                                 클릭하여 복사
                             </div>
                         </div>
@@ -125,47 +130,47 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             </div>
 
             {/* Metrics Breakdown Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {metrics.map((metric) => (
                     <MetricCard key={metric.id} {...metric} />
                 ))}
             </div>
 
             {/* Photo Ranking Section */}
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <div className="flex items-center gap-3">
-                    <Trophy className="w-6 h-6 text-yellow-500" />
-                    <h3 className="text-xl font-bold text-gray-900">베스트 포토 TOP 3</h3>
+                    <Trophy className="w-8 h-8 text-yellow-500" />
+                    <h3 className="text-2xl font-bold text-gray-900">베스트 포토 TOP 3</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {data.ranking.map((item, idx) => {
                         // Find matching file from the lifted state
                         const matchingFile = files.find(f => f.name === item.filename);
                         const imageUrl = matchingFile ? URL.createObjectURL(matchingFile) : null;
 
                         return (
-                            <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-                                <div className="absolute top-0 left-0 bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-20 shadow-md">
+                            <div key={idx} className="bg-white rounded-3xl p-5 shadow-lg shadow-gray-100 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 bg-gray-900 text-white text-sm font-bold px-4 py-2 rounded-br-2xl z-20 shadow-lg">
                                     Rank {item.rank}
                                 </div>
 
-                                <div className="aspect-[4/3] bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative">
+                                <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-5 flex items-center justify-center overflow-hidden relative shadow-inner">
                                     {imageUrl ? (
-                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover" />
+                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
                                     ) : (
-                                        <div className="text-gray-400 text-xs text-center p-4">
+                                        <div className="text-gray-400 text-sm text-center p-6 font-medium">
                                             {item.filename}<br />(이미지 매칭 실패)
                                         </div>
                                     )}
-                                    <div className="absolute top-2 right-2">
-                                        <Badge variant="secondary" className="bg-white/90 backdrop-blur text-xs shadow-sm">
+                                    <div className="absolute top-3 right-3">
+                                        <Badge variant="secondary" className="bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 shadow-md">
                                             {item.category}
                                         </Badge>
                                     </div>
                                 </div>
 
-                                <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                                <p className="text-base font-medium text-gray-800 line-clamp-3 leading-relaxed">
                                     "{item.reason}"
                                 </p>
                             </div>
@@ -174,15 +179,15 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
             </div>
 
-            {/* Upsell Floating Button (Conditional) */}
+            {/* Upsell Floating Button (Fixed to Bottom) */}
             {!isHighQuality && (
-                <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom duration-500 w-full max-w-md px-4">
+                <div className="fixed bottom-10 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
                     <button
                         onClick={() => alert("캠핏 파트너 센터 연결 예정")}
-                        className="w-full bg-camfit-green text-white font-bold py-4 px-8 rounded-full shadow-2xl shadow-camfit-green/50 hover:shadow-camfit-green/70 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 text-lg"
+                        className="pointer-events-auto bg-[#01DF82] text-white font-bold py-5 px-10 rounded-full shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center gap-3 text-xl ring-4 ring-white"
                     >
                         <span>캠핏에서 해결해봐요!</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-6 h-6 animate-pulse" />
                     </button>
                 </div>
             )}
