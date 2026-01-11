@@ -6,9 +6,9 @@ const getBase = () => {
     const key = process.env.AIRTABLE_API_KEY;
     const baseId = process.env.AIRTABLE_BASE_ID;
 
-    if (!key && !baseId) return { error: "Key와 Base ID 모두 없습니다. (V6)" };
-    if (!key) return { error: "AIRTABLE_API_KEY가 없습니다. (V6)" };
-    if (!baseId) return { error: "AIRTABLE_BASE_ID가 없습니다. (V6)" };
+    if (!key && !baseId) return { error: "Key와 Base ID 모두 없습니다. (V7)" };
+    if (!key) return { error: "AIRTABLE_API_KEY가 없습니다. (V7)" };
+    if (!baseId) return { error: "AIRTABLE_BASE_ID가 없습니다. (V7)" };
 
     return {
         base: new Airtable({ apiKey: key }).base(baseId)
@@ -19,7 +19,7 @@ export async function saveAnalysisResult(data: AnalysisReport) {
     const result = getBase();
     if ('error' in result) {
         console.warn("Airtable credentials failure:", result.error);
-        return { success: false, error: `${result.error} Vercel 설정을 다시 확인해주세요.` };
+        return { success: false, error: `${result.error} (V8) Vercel 설정을 다시 확인해주세요.` };
     }
     const base = result.base;
 
@@ -79,6 +79,6 @@ export async function saveAnalysisResult(data: AnalysisReport) {
         if (error.error) errorMsg += ` (${error.error})`;
         if (error.statusCode) errorMsg += ` [Status: ${error.statusCode}]`;
 
-        return { success: false, error: `${errorMsg} (V5-SDK)` };
+        return { success: false, error: `${errorMsg} (V7-SDK)` };
     }
 }

@@ -1,8 +1,9 @@
 import { put } from "@vercel/blob";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { saveAnalysisResult } from "@/lib/airtable";
-import { AnalysisReport } from "@/lib/types";
+import { saveAnalysisResult } from '@/lib/airtable';
+import { sendErrorEmail } from '@/lib/email';
+import { AnalysisReport } from '@/lib/types';
 
 // Allow up to 60 seconds for analysis
 export const maxDuration = 60;
@@ -160,8 +161,12 @@ export async function POST(req: Request) {
             console.log("✅ Airtable Save Success, ID:", airtableResult.id);
         } else {
             console.warn("❌ Airtable Save Failed:", airtableResult?.error);
-            // Attach error to result so UI can show it
-            (finalReport as any).airtable_error = airtableResult?.error || "에어테이블 응답 없음 (V7-Fall)";
+
+            // NEW: Send error log to administrator via email
+            await sendErrorEmail("Airtable Save Failure", airtableResult?.error, finalReport);
+
+            // Technical error is no longer shown to user, only a flag
+            (finalReport as any).airtable_sync_failed = true;
         }
 
         return NextResponse.json(finalReport);

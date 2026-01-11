@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
+import { Sparkles, ChartBarBig, TrendingUp, TriangleAlert, Trophy, Quote, Copy, ArrowRight, CircleAlert, CircleCheckBig } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 
@@ -89,7 +89,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     if (!data) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-400 space-y-4 border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50/50">
-                <BarChart3 className="w-16 h-16 opacity-20" />
+                <ChartBarBig className="w-16 h-16 opacity-20" />
                 <p>왼쪽에서 사진을 업로드하여 AI 진단을 시작하세요</p>
             </div>
         );
@@ -110,20 +110,13 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V7-DEBUG)</h2>
+                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V8)</h2>
                     </div>
 
-                    {(data as any).airtable_error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-700 animate-in slide-in-from-top duration-500">
-                            <CircleAlert className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="font-bold text-sm mb-1">에어테이블 저장 실패 안내</p>
-                                <p className="text-xs opacity-90 leading-relaxed">
-                                    분석은 성공했으나 에어테이블 기록에 실패했습니다. <br />
-                                    <strong>원인:</strong> {(data as any).airtable_error} <br />
-                                    <span className="mt-1 block opacity-80">※ 에어테이블의 필드 이름이나 권한 설정을 확인해 주세요.</span>
-                                </p>
-                            </div>
+                    {(data as any).airtable_sync_failed && (
+                        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 text-emerald-800 animate-in slide-in-from-top duration-500">
+                            <CircleCheckBig className="w-5 h-5 flex-shrink-0 text-camfit-green" />
+                            <p className="text-xs font-medium">분석 데이터가 곧 캠핏 파트너 시스템과 동기화될 예정입니다.</p>
                         </div>
                     )}
 
@@ -251,7 +244,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                         <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
-                                            < BarChart3 className="w-10 h-10 mb-2 opacity-30" />
+                                            <ChartBarBig className="w-10 h-10 mb-2 opacity-30" />
                                             <span className="text-[10px] text-center font-medium">
                                                 {item.filename?.match(/input_file_(\d+)/i)
                                                     ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
