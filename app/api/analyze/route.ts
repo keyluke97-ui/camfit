@@ -3,8 +3,14 @@ import { NextResponse } from "next/server";
 import { saveAnalysisResult } from "@/lib/airtable";
 import { AnalysisReport } from "@/lib/types";
 
+// Allow up to 60 seconds for complex analysis (Vercel Pro/Hobby limits may vary)
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-const MODEL_NAME = "gemini-1.5-pro"; // Use Pro for better reasoning
+// User requested "Superior Model" for best logical results. 
+// gemini-1.5-pro is the current best public model for reasoning/vision.
+const MODEL_NAME = "gemini-1.5-pro";
 
 export async function POST(req: Request) {
     try {
@@ -56,7 +62,8 @@ export async function POST(req: Request) {
       - Analyze ALL images as one content package.
       - Be strict. If photos are blurry, messy, or boring, deduct points heavily.
       - Select the TOP ranking photos that would trigger clicks.
-      
+      - OUTPUT JSON ONLY.
+
       # OUTPUT FORMAT (Strict JSON Only):
       {
         "total_score": (0-100 integer),
@@ -80,9 +87,23 @@ export async function POST(req: Request) {
         const response = await result.response;
         const text = response.text();
 
-        // Parse JSON safely
-        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        const aiData = JSON.parse(jsonString) as AnalysisReport;
+        // 1. Clean Markdown Code Blocks
+        let jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        // 2. Extract JSON strictly if model chats
+        const firstBrace = jsonString.indexOf('{');
+        const lastBrace = jsonString.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        }
+
+        let aiData: AnalysisReport;
+        try {
+            aiData = JSON.parse(jsonString) as AnalysisReport;
+        } catch (e) {
+            console.error("JSON Parse Error. Raw Text:", text);
+            throw new Error(`AI 응답 형식 오류 (JSON Parse Failed). Raw: ${text.substring(0, 100)}...`);
+        }
 
         // Attach Context
         const finalReport: AnalysisReport = {
@@ -97,9 +118,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json(finalReport);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("V2 Analysis Error:", error);
-        return NextResponse.json({ error: "Analysis failed" }, { status: 500 });
+        const errorMessage = error.message || "Unknown Server Error";
+        return NextResponse.json({ error: `Analysis failed: ${errorMessage}` }, { status: 500 });
     }
 }
 
