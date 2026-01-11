@@ -1,12 +1,19 @@
 import Airtable from 'airtable';
 import { AnalysisReport } from './types';
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-    process.env.AIRTABLE_BASE_ID || ''
-);
+// Lazy initialization to prevent build-time crashes if env vars are missing
+const getBase = () => {
+    if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
+        return null;
+    }
+    return new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+        process.env.AIRTABLE_BASE_ID
+    );
+};
 
 export async function saveAnalysisResult(data: AnalysisReport) {
-    if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
+    const base = getBase();
+    if (!base) {
         console.warn("Airtable credentials missing. Skipping save.");
         return null;
     }
