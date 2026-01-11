@@ -8,9 +8,10 @@ export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-// User requested "Superior Model" for best logical results. 
-// gemini-1.5-pro is the current best public model for reasoning/vision.
-const MODEL_NAME = "gemini-1.5-pro";
+
+// 'gemini-1.5-pro' is causing 404 errors for some API keys/regions.
+// Switching to 'gemini-1.5-flash' which is the most stable and widely available high-performance model.
+const MODEL_NAME = "gemini-1.5-flash";
 
 export async function POST(req: Request) {
     try {
