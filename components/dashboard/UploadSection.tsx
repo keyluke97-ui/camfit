@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+import * as React from "react";
 import { useState, useRef } from "react";
 import Script from "next/script";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -189,19 +191,19 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 </div>
                 <div className="space-y-4">
                     <label className="text-sm font-bold text-gray-700 block">사진 업로드 ({files.length}/20)<span className="text-gray-400 font-normal ml-2 text-xs">*최소 5장 이상 권장</span></label>
-                    <div className={cn("relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer min-h-[160px] flex flex-col items-center justify-center", isDragOver ? "border-camfit-green bg-camfit-green/10 scale-[1.02]" : "border-gray-300 hover:border-camfit-green hover:bg-gray-50", files.length > 0 ? "bg-white" : "")} onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleFileDrop} onClick={() => fileInputRef.current?.click()}>
-                        <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple onChange={(e) => e.target.files?.length && addFiles(Array.from(e.target.files))} />
+                    <div className={cn("relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer min-h-[160px] flex flex-col items-center justify-center", isDragOver ? "border-camfit-green bg-camfit-green/10 scale-[1.02]" : "border-gray-300 hover:border-camfit-green hover:bg-gray-50", files.length > 0 ? "bg-white" : "")} onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleFileDrop} onClick={() => fileInputRef.current?.click()}>
+                        <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files?.length && addFiles(Array.from(e.target.files))} />
                         {files.length === 0 ? (
                             <div className="flex flex-col items-center gap-3 relative z-10 pointer-events-none">
                                 <div className="p-4 bg-white rounded-full shadow-sm text-camfit-green"><UploadCloud className="w-8 h-8" /></div>
                                 <div><p className="font-semibold text-gray-900">클릭하거나 사진을 드래그하세요</p><p className="text-xs text-gray-500 mt-1">최대 20장까지 한 번에 선택 가능</p></div>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 w-full pt-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 w-full pt-2" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="aspect-square flex flex-col items-center justify-center border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-500 text-xs gap-1"><UploadCloud className="w-4 h-4" />추가하기</button>
                                 {files.map((file, idx) => (
                                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm bg-gray-100">
-                                        <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)} />
+                                        <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => URL.revokeObjectURL(e.currentTarget.src)} />
 
                                         {/* Number Badge */}
                                         <div className="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 border border-white/20">

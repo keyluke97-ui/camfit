@@ -179,7 +179,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                             </div>
                             <div className="bg-gray-50/80 px-4 py-4 rounded-xl text-gray-900 font-bold border border-gray-200 cursor-pointer hover:bg-white transition-all group"
                                 onClick={() => { navigator.clipboard.writeText(sanitizeText(data.one_line_intro || "")); alert("복사되었습니다!"); }}>
-                                <p className="text-[16px]">{sanitizeText(data.one_line_intro)}</p>
+                                <p className="text-[16px]">{sanitizeText(data.one_line_intro || "")}</p>
                             </div>
                         </div>
 
@@ -204,7 +204,14 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             {/* Metrics Breakdown Grid (Full Detail) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {metrics.map((metric) => (
-                    <MetricCard key={metric.id} {...metric} />
+                    <MetricCard
+                        key={metric.id}
+                        label={metric.label}
+                        score={metric.score}
+                        comment={metric.comment}
+                        trend={metric.trend}
+                        description={metric.description}
+                    />
                 ))}
             </div>
 
