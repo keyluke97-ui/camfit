@@ -64,8 +64,8 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 const canvas = document.createElement("canvas");
                 let width = img.width;
                 let height = img.height;
-                const MAX_WIDTH = 1500;
-                const MAX_HEIGHT = 1500;
+                const MAX_WIDTH = 1024;
+                const MAX_HEIGHT = 1024;
                 if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
                 else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
                 canvas.width = width;
@@ -75,7 +75,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 canvas.toBlob((blob) => {
                     if (blob) resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
                     else reject(new Error("Compression failed"));
-                }, "image/jpeg", 0.7);
+                }, "image/jpeg", 0.6);
             };
             img.onerror = (err) => reject(err);
         });
@@ -118,10 +118,17 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 body: formData,
             });
 
-            const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || "Server responded with error");
+                // If response is not ok (e.g., 403 Forbidden), try to get text error
+                const errorText = await response.text();
+                // Check if it's an HTML error page or a simple string
+                const cleanError = errorText.includes("<!DOCTYPE")
+                    ? `서버 에러 (${response.status}): 요청 용량이 너무 크거나 접근이 거부되었습니다.`
+                    : errorText;
+                throw new Error(cleanError);
             }
+
+            const data = await response.json();
             onAnalysisComplete(data);
         } catch (error: any) {
             console.error(error);
