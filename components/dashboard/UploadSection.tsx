@@ -51,6 +51,57 @@ export function UploadSection({ onAnalysisComplete, onLoadingChange }: UploadSec
         setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
+    // Image Compression Helper
+    const compressImage = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let width = img.width;
+                let height = img.height;
+
+                // Max dimension rule (1500px)
+                const MAX_WIDTH = 1500;
+                const MAX_HEIGHT = 1500;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            const newFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(newFile);
+                        } else {
+                            reject(new Error("Compression failed"));
+                        }
+                    },
+                    "image/jpeg",
+                    0.7 // Quality 70%
+                );
+            };
+            img.onerror = (err) => reject(err);
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (files.length === 0) return;
@@ -59,8 +110,11 @@ export function UploadSection({ onAnalysisComplete, onLoadingChange }: UploadSec
         onLoadingChange(true);
 
         try {
+            // Compress files before appending
+            const compressedFiles = await Promise.all(files.map(compressImage));
+
             const formData = new FormData();
-            files.forEach(file => {
+            compressedFiles.forEach(file => {
                 formData.append("images", file);
             });
             formData.append("campingName", campingName);
@@ -73,13 +127,16 @@ export function UploadSection({ onAnalysisComplete, onLoadingChange }: UploadSec
                 body: formData,
             });
 
-            if (!response.ok) throw new Error("Analysis failed");
-
             const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Analysis failed");
+            }
+
             onAnalysisComplete(data);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            alert(`분석 중 오류가 발생했습니다: ${error.message || "서버 오류"}`);
         } finally {
             setIsLoading(false);
             onLoadingChange(false);
