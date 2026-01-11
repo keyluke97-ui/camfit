@@ -9,9 +9,9 @@ export const dynamic = 'force-dynamic';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 
-// 'gemini-1.5-pro' is causing 404 errors for some API keys/regions.
-// Switching to 'gemini-1.5-flash' which is the most stable and widely available high-performance model.
-const MODEL_NAME = "gemini-1.5-flash";
+// Using 'gemini-1.5-pro-latest' - the canonical alias to avoid version 404 errors.
+// This points to the latest stable 1.5 Pro model.
+const MODEL_NAME = "gemini-1.5-pro-latest";
 
 export async function POST(req: Request) {
     try {
