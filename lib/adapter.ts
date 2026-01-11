@@ -15,13 +15,22 @@ export function normalizeV2Data(report: AnalysisReport) {
         return Math.min(100, Math.max(0, base + variance));
     };
 
+    // Calculate individual scores first
+    const vibeScore = getVariedScore(report.total_score);
+    const hygieneScore = getVariedScore(report.total_score);
+    const contentsScore = getVariedScore(report.total_score);
+    const seasonScore = getVariedScore(report.total_score);
+
+    // Calculate actual average as the official total score
+    const calculatedTotal = Math.round((vibeScore + hygieneScore + contentsScore + seasonScore) / 4);
+
     return {
-        totalScore: report.total_score,
+        totalScore: calculatedTotal,
         metrics: [
-            { id: "vibe", label: "시각적 압도", score: getVariedScore(report.total_score), comment: report.evaluation.vibe, trend: getTrend(report.evaluation.vibe) as "up" | "down" | "neutral" },
-            { id: "hygiene", label: "시설 청결", score: getVariedScore(report.total_score), comment: report.evaluation.hygiene, trend: getTrend(report.evaluation.hygiene) as "up" | "down" | "neutral" },
-            { id: "contents", label: "경험 가치", score: getVariedScore(report.total_score), comment: report.evaluation.contents, trend: getTrend(report.evaluation.contents) as "up" | "down" | "neutral" },
-            { id: "season", label: "계절감", score: getVariedScore(report.total_score), comment: report.evaluation.season, trend: getTrend(report.evaluation.season) as "up" | "down" | "neutral" },
+            { id: "vibe", label: "시각적 압도", score: vibeScore, comment: report.evaluation.vibe, trend: getTrend(report.evaluation.vibe) as "up" | "down" | "neutral" },
+            { id: "hygiene", label: "시설 청결", score: hygieneScore, comment: report.evaluation.hygiene, trend: getTrend(report.evaluation.hygiene) as "up" | "down" | "neutral" },
+            { id: "contents", label: "경험 가치", score: contentsScore, comment: report.evaluation.contents, trend: getTrend(report.evaluation.contents) as "up" | "down" | "neutral" },
+            { id: "season", label: "계절감", score: seasonScore, comment: report.evaluation.season, trend: getTrend(report.evaluation.season) as "up" | "down" | "neutral" },
         ]
     };
 }

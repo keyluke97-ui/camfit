@@ -62,13 +62,13 @@ export async function POST(req: Request) {
             # INSTRUCTIONS:
             1. **LANGUAGE**: ALL OUTPUT MUST BE IN KOREAN (한국어).
             2. **TONE**: Professional, objective, yet encouraging (Smart & Sharp).
-            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and bold text (**) to structure potential strategies clearly. Do not just write a paragraph.
+            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and REQUIRED bold text (**) for critical action items (e.g., **고급스러운 실사 위주 썸네일 교체**, **개별 화장실 강조**).
             4. **CRITERIA**:
                - Vibe: Visual aesthetics, emotional impact.
                - Hygiene: Cleanliness, maintenance state.
                - Contents: Activities, fun factors, facilities.
                - Season: Seasonal appeal (snow, autumn, water, etc).
-            5. **RANKING**: Select top 3 photos that are most likely to convert clicks. Identify them by their exact filename or description.
+            5. **RANKING**: You MUST select exactly the top 3 photos from the provided images. Identify them by their EXACT original filename provided in the context. This is critical for matching.
 
             # OUTPUT FORMAT (Strict JSON Only):
             {
