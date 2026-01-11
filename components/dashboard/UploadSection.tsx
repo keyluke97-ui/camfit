@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import * as React from "react";
 import { useState, useRef } from "react";
 import Script from "next/script";
 import { GlassCard } from "@/components/ui/GlassCard";
