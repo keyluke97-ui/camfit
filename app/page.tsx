@@ -7,6 +7,8 @@ import { AnalysisDashboard } from "@/components/dashboard/AnalysisDashboard";
 export default function Home() {
     const [analysisData, setAnalysisData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    // Lifted State for Image Preview Sharing
+    const [files, setFiles] = useState<File[]>([]);
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-8 lg:p-24 relative overflow-hidden bg-gray-50">
@@ -37,6 +39,8 @@ export default function Home() {
                     {/* Left: Upload & Config */}
                     <div className="lg:col-span-4 space-y-6 sticky top-8">
                         <UploadSection
+                            files={files}
+                            setFiles={setFiles}
                             onAnalysisComplete={setAnalysisData}
                             onLoadingChange={setIsLoading}
                         />
@@ -50,7 +54,11 @@ export default function Home() {
 
                     {/* Right: AI Dashboard */}
                     <div className="lg:col-span-8">
-                        <AnalysisDashboard data={analysisData} isLoading={isLoading} />
+                        <AnalysisDashboard
+                            data={analysisData}
+                            isLoading={isLoading}
+                            files={files} // Pass files for preview matching
+                        />
                     </div>
                 </div>
             </div>

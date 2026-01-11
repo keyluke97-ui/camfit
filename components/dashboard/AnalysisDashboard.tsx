@@ -10,9 +10,10 @@ import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
     isLoading: boolean;
+    files?: File[]; // Optional files for preview matching
 }
 
-export function AnalysisDashboard({ data, isLoading }: AnalysisDashboardProps) {
+export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashboardProps) {
     if (isLoading) {
         return (
             <GlassCard className="flex flex-col items-center justify-center min-h-[400px] animate-pulse">
@@ -112,30 +113,40 @@ export function AnalysisDashboard({ data, isLoading }: AnalysisDashboardProps) {
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {data.ranking.map((item, idx) => (
-                        <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-10">
-                                Rank {item.rank}
-                            </div>
+                    {data.ranking.map((item, idx) => {
+                        // Find matching file from the lifted state
+                        const matchingFile = files.find(f => f.name === item.filename);
+                        const imageUrl = matchingFile ? URL.createObjectURL(matchingFile) : null;
 
-                            {/* Placeholder for actual image if filename matched (In MVP we don't have URL map, just mocking visual placeholder or text) */}
-                            <div className="aspect-[4/3] bg-gray-100 rounded-xl mb-4 flex items-center justify-center text-gray-400 text-xs text-center p-4">
-                                {item.filename}
-                                <br />(이미지 미리보기)
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 bg-camfit-green/10 text-camfit-dark text-[10px] font-bold rounded-full uppercase">
-                                        {item.category}
-                                    </span>
+                        return (
+                            <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 bg-black/80 text-white text-xs font-bold px-3 py-1 rounded-br-xl z-10 shadow-md">
+                                    Rank {item.rank}
                                 </div>
-                                <p className="text-sm font-semibold text-gray-800 line-clamp-2">
-                                    "{item.reason}"
-                                </p>
+
+                                <div className="aspect-[4/3] bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                    {imageUrl ? (
+                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-gray-400 text-xs text-center p-4">
+                                            {item.filename}<br />(이미지 매칭 실패)
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2 py-0.5 bg-camfit-green/10 text-camfit-dark text-[10px] font-bold rounded-full uppercase">
+                                            {item.category}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-gray-800 line-clamp-2 leading-tight">
+                                        "{item.reason}"
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

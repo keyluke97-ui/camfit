@@ -9,6 +9,8 @@ import { UploadCloud, Loader2, X, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UploadSectionProps {
+    files: File[];
+    setFiles: React.Dispatch<React.SetStateAction<File[]>>;
     onAnalysisComplete: (data: any) => void;
     onLoadingChange: (isLoading: boolean) => void;
 }
@@ -17,9 +19,9 @@ const LEISURE_OPTIONS = ["계곡", "바다", "갯벌", "강/호수", "수상레�
 const FACILITY_OPTIONS = ["트램펄린", "개별화장실/샤워실", "샤워실", "카페/매점", "바베큐장", "전기차충전소", "수영장", "놀이시설", "찜질방", "온수수영장", "반려견 동반"];
 const ACTIVITY_OPTIONS = ["갯벌체험", "체험활동", "농장체험", "동물체험"];
 
-export function UploadSection({ onAnalysisComplete, onLoadingChange }: UploadSectionProps) {
+export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingChange }: UploadSectionProps) {
     const [isDragOver, setIsDragOver] = useState(false);
-    const [files, setFiles] = useState<File[]>([]);
+    // Removed local files state
     const [campingName, setCampingName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
