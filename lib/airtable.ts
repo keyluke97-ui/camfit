@@ -18,13 +18,25 @@ export async function saveAnalysisResult(data: AnalysisReport) {
         return null;
     }
 
+    const getBestUrl = (rank: number) => {
+        const item = data.ranking?.find(r => r.rank === rank);
+        if (!item) return [];
+        const match = item.filename?.match(/input_file_(\d+)/i);
+        if (match && match[1]) {
+            const idx = parseInt(match[1]) - 1;
+            const url = data.uploadedUrls?.[idx];
+            return url ? [{ url }] : [];
+        }
+        return [];
+    };
+
     try {
         const records = await base(process.env.AIRTABLE_TABLE_NAME || '사진 진단 캠핑장 DB').create([
             {
                 fields: {
                     // [사용자 입력 정보]
                     "캠핑장 이름": (data.campingName || "알 수 없는 캠핑장").trim(),
-                    "캠핑장 주소 (신규)": (data.address || "").trim(),
+                    "캠핑장 주소": (data.address || "").trim(),
                     "주변레저": JSON.stringify(data.tags?.leisure || []),
                     "시설": JSON.stringify(data.tags?.facility || []),
                     "체험활동": JSON.stringify(data.tags?.activity || []),
@@ -40,10 +52,11 @@ export async function saveAnalysisResult(data: AnalysisReport) {
                     "추천 한 줄 소개": (data.one_line_intro || "").trim(),
                     "추천 소개글 가이드": data.description || "",
 
-                    // [베스트 포토 데이터] - Metadata focusing on reasons
-                    "BEST 1 선정이유": data.ranking?.find(r => r.rank === 1)?.reason || "",
-                    "BEST 2 선정이유": data.ranking?.find(r => r.rank === 2)?.reason || "",
-                    "BEST 3 선정이유": data.ranking?.find(r => r.rank === 3)?.reason || "",
+                    // [사진 데이터] - Now sending as attachments
+                    "BEST 1 사진": getBestUrl(1),
+                    "BEST 2 사진": getBestUrl(2),
+                    "BEST 3 사진": getBestUrl(3),
+                    "사진 업로드 (0/20)": (data.uploadedUrls || []).map(url => ({ url })),
 
                     // Technical metadata
                     "Full JSON": JSON.stringify(data),

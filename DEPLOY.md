@@ -19,6 +19,11 @@
 1. **Vercel 대시보드** 접속 -> 'Add New...' -> 'Project' 클릭.
 2. 방금 올린 GitHub 저장소(Repository) 옆의 'Import' 버튼 클릭.
 3. **Configure Project** 화면에서:
+   ### 3. Vercel Blob 설정 (사진 첨부용)
+   에어테이블에 사진을 자동으로 첨부하려면 Vercel 저장소 설정이 필요합니다.
+   1. Vercel 프로젝트 대시보드에서 **Storage** 탭 클릭
+   2. **Connect Database** -> **Blob** 선택
+   3. **Create New** 버튼을 눌러 생성 (자동으로 환경변수가 추가됩니다)
    - **Environment Variables** (환경변수) 섹션을 펼칩니다.
    - 다음 두 가지 값을 입력해야 AI가 작동합니다.
      - **Key**: `GOOGLE_API_KEY` / **Value**: (Google Gemini API 키 입력)

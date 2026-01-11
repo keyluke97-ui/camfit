@@ -1,3 +1,4 @@
+import { put } from "@vercel/blob";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { saveAnalysisResult } from "@/lib/airtable";
@@ -39,18 +40,30 @@ export async function POST(req: Request) {
             return NextResponse.json(MOCK_V2_RESPONSE);
         }
 
+        // 1. Parallel Upload to Vercel Blob (for Airtable) & Base64 Prep (for Gemini)
+        console.log("Uploading images to Vercel Blob...");
+        const uploadPromises = images.map((file, i) =>
+            put(`camfit/${Date.now()}_img_${i + 1}.jpg`, file, { access: 'public' })
+        );
+
         const payloadParts: any[] = [];
+        const imageBuffers = await Promise.all(images.map(f => f.arrayBuffer()));
+
         for (let i = 0; i < images.length; i++) {
-            const file = images[i];
-            const base64Data = Buffer.from(await file.arrayBuffer()).toString("base64");
+            const base64Data = Buffer.from(imageBuffers[i]).toString("base64");
             payloadParts.push({ text: `input_file_${i + 1}.png` });
             payloadParts.push({
                 inlineData: {
                     data: base64Data,
-                    mimeType: file.type,
+                    mimeType: images[i].type,
                 }
             });
         }
+
+        // Wait for uploads to finish in background or now
+        const blobs = await Promise.all(uploadPromises);
+        const uploadedUrls = blobs.map(b => b.url);
+        console.log(`Uploaded ${uploadedUrls.length} images to Blob.`);
 
         const prompt = `
             # ROLE: Senior Growth Editor of Camfit (Korea's No.1 Camping Platform)
@@ -135,7 +148,8 @@ export async function POST(req: Request) {
             campingName,
             address,
             tags: { leisure: leisureTags, facility: facilityTags, activity: activityTags },
-            photoCount: images.length
+            photoCount: images.length,
+            uploadedUrls
         };
 
         // Sequential Process: Save to Airtable before returning

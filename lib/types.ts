@@ -39,4 +39,5 @@ export interface AnalysisReport {
         activity: string[];
     };
     photoCount?: number;
+    uploadedUrls?: string[]; // All Vercel Blob URLs
 }
