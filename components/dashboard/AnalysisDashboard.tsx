@@ -164,7 +164,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                         </div>
                                     )}
                                     <div className="absolute top-3 right-3">
-                                        <Badge variant="secondary" className="bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 shadow-md">
+                                        <Badge variant="neutral" className="bg-white/95 backdrop-blur text-xs font-bold px-3 py-1 shadow-md">
                                             {item.category}
                                         </Badge>
                                     </div>
