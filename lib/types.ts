@@ -25,6 +25,7 @@ export interface AnalysisReport {
     marketing_comment: string;
     upsell_needed: boolean;
     description: string;
+    one_line_intro?: string; // New V2 Feature
     // Metadata to save context
     campingName?: string;
     tags?: {
