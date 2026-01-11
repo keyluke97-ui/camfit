@@ -8,7 +8,7 @@ interface MetricCardProps {
     score: number;
     comment: string;
     trend: "up" | "down" | "neutral";
-    metricId: AnalysisMetric;
+    metricId?: AnalysisMetric;
 }
 
 export function MetricCard({ label, score, comment, trend, metricId }: MetricCardProps) {
