@@ -31,14 +31,18 @@ export async function saveAnalysisResult(data: AnalysisReport) {
     };
 
     try {
-        // Prepare fields with explicit casting to bypass strict type checking for custom field names
+        // Use the array-based creation with typecast enabled
+        // We cast the base call to any to ignore complex overload resolution errors during build
+        let tableName = (process.env.AIRTABLE_TABLE_NAME || '사진 진단 캠핑장 DB').trim();
+        const table: any = base(tableName);
+
         const fields: any = {
             // [사용자 입력 정보]
             "캠핑장 이름": (data.campingName || "알 수 없는 캠핑장").trim(),
             "캠핑장 주소": (data.address || "").trim(),
-            "주변레저": JSON.stringify(data.tags?.leisure || []),
-            "시설": JSON.stringify(data.tags?.facility || []),
-            "체험활동": JSON.stringify(data.tags?.activity || []),
+            "주변레저": data.tags?.leisure || [],
+            "시설": data.tags?.facility || [],
+            "체험활동": data.tags?.activity || [],
 
             // [AI 분석 결과 데이터]
             "종합 점수": Math.round(data.total_score || 0),
@@ -62,10 +66,6 @@ export async function saveAnalysisResult(data: AnalysisReport) {
             "Created At": new Date().toISOString()
         };
 
-        // Use the array-based creation with typecast enabled
-        // We cast the base call to any to ignore complex overload resolution errors during build
-        const tableName = process.env.AIRTABLE_TABLE_NAME || '사진 진단 캠핑장 DB';
-        const table: any = base(tableName);
         const records = await table.create([{ fields }], { typecast: true });
 
         console.log("Airtable success: Record created with ID", records[0].getId());
