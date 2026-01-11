@@ -3,20 +3,25 @@ import { AnalysisReport } from './types';
 
 // Lazy initialization to prevent build-time crashes if env vars are missing
 const getBase = () => {
-    if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
-        return null;
-    }
-    return new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-        process.env.AIRTABLE_BASE_ID
-    );
+    const key = process.env.AIRTABLE_API_KEY;
+    const baseId = process.env.AIRTABLE_BASE_ID;
+
+    if (!key && !baseId) return { error: "Key와 Base ID 모두 없습니다. (V6)" };
+    if (!key) return { error: "AIRTABLE_API_KEY가 없습니다. (V6)" };
+    if (!baseId) return { error: "AIRTABLE_BASE_ID가 없습니다. (V6)" };
+
+    return {
+        base: new Airtable({ apiKey: key }).base(baseId)
+    };
 };
 
 export async function saveAnalysisResult(data: AnalysisReport) {
-    const base = getBase();
-    if (!base) {
-        console.warn("Airtable credentials missing. Skipping save.");
-        return { success: false, error: "에어테이블 설정값(Key/ID)이 Vercel 대시보드에 등록되지 않았습니다. (V5)" };
+    const result = getBase();
+    if ('error' in result) {
+        console.warn("Airtable credentials failure:", result.error);
+        return { success: false, error: `${result.error} Vercel 설정을 다시 확인해주세요.` };
     }
+    const base = result.base;
 
     const getBestUrl = (rank: number) => {
         const item = data.ranking?.find(r => r.rank === rank);
@@ -59,11 +64,7 @@ export async function saveAnalysisResult(data: AnalysisReport) {
             "BEST 1 사진": getBestUrl(1),
             "BEST 2 사진": getBestUrl(2),
             "BEST 3 사진": getBestUrl(3),
-            "사진 업로드 (0/20)": (data.uploadedUrls || []).map(url => ({ url })),
-
-            // Technical metadata
-            "Full JSON": JSON.stringify(data),
-            "Created At": new Date().toISOString()
+            "사진 업로드 (0/20)": (data.uploadedUrls || []).map(url => ({ url }))
         };
 
         const records = await table.create([{ fields }], { typecast: true });

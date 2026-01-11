@@ -161,7 +161,7 @@ export async function POST(req: Request) {
         } else {
             console.warn("❌ Airtable Save Failed:", airtableResult?.error);
             // Attach error to result so UI can show it
-            (finalReport as any).airtable_error = airtableResult?.error || "에어테이블 응답 없음 (V5-Fall)";
+            (finalReport as any).airtable_error = airtableResult?.error || "에어테이블 응답 없음 (V7-Fall)";
         }
 
         return NextResponse.json(finalReport);
