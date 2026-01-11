@@ -5,7 +5,7 @@ import { UploadSection } from "@/components/dashboard/UploadSection";
 import { AnalysisDashboard } from "@/components/dashboard/AnalysisDashboard";
 
 export default function Home() {
-    const [analysisData, setAnalysisData] = useState(null);
+    const [analysisData, setAnalysisData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     return (
