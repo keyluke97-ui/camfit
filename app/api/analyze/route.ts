@@ -62,12 +62,13 @@ export async function POST(req: Request) {
             # INSTRUCTIONS:
             1. **LANGUAGE**: ALL OUTPUT MUST BE IN KOREAN (한국어).
             2. **TONE**: Professional, objective, yet encouraging (Smart & Sharp).
-            3. **CRITERIA**:
+            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and bold text (**) to structure potential strategies clearly. Do not just write a paragraph.
+            4. **CRITERIA**:
                - Vibe: Visual aesthetics, emotional impact.
                - Hygiene: Cleanliness, maintenance state.
                - Contents: Activities, fun factors, facilities.
                - Season: Seasonal appeal (snow, autumn, water, etc).
-            4. **RANKING**: Select top 3 photos that are most likely to convert clicks. Identify them by their exact filename or description.
+            5. **RANKING**: Select top 3 photos that are most likely to convert clicks. Identify them by their exact filename or description.
 
             # OUTPUT FORMAT (Strict JSON Only):
             {
@@ -83,9 +84,10 @@ export async function POST(req: Request) {
                     { "rank": 2, "filename": "exact_filename_of_image", "category": "Category", "reason": "Reason in Korean" },
                     { "rank": 3, "filename": "exact_filename_of_image", "category": "Category", "reason": "Reason in Korean" }
                 ],
-                "marketing_comment": "Strategic advice in Korean for the owner.",
+                "marketing_comment": "Strategic advice in Korean using markdown listing format.",
                 "upsell_needed": boolean,
-                "description": "An emotional, SEO-optimized description of the campsite in Korean."
+                "description": "An emotional, SEO-optimized description of the campsite in Korean.",
+                "one_line_intro": "A catchy one-line intro (max 23 chars) in Korean."
             }
         `;
 
