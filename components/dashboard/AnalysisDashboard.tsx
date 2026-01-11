@@ -39,10 +39,10 @@ export function AnalysisDashboard({ data, isLoading }: AnalysisDashboardProps) {
     // Let's adapt if needed or ensure API matches. 
     // For safety, let's normalize here assuming API returns object keys.
     const normalizedMetrics = Array.isArray(metrics) ? metrics : [
-        { id: "vibe", label: "Vibe (시각적 압도)", ...metrics.vibe },
-        { id: "hygiene", label: "Hygiene (시설 청결)", ...metrics.hygiene },
-        { id: "contents", label: "Contents (경험 가치)", ...metrics.contents },
-        { id: "season", label: "Season (계절감)", ...metrics.season },
+        { id: "vibe", label: "Vibe (시각적 압도)", ...(metrics as any).vibe },
+        { id: "hygiene", label: "Hygiene (시설 청결)", ...(metrics as any).hygiene },
+        { id: "contents", label: "Contents (경험 가치)", ...(metrics as any).contents },
+        { id: "season", label: "Season (계절감)", ...(metrics as any).season },
     ];
 
     return (
