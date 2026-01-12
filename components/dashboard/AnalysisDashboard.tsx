@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
 import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
-import { normalizeV2Data } from "@/lib/adapter";
-import { ChatbotModal } from "@/components/chatbot/ChatbotModal";
+import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -19,8 +18,6 @@ interface AnalysisDashboardProps {
 export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashboardProps) {
     const [expandedRankings, setExpandedRankings] = useState<number[]>([]);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-    const [recordId, setRecordId] = useState<string | null>(null);
 
     const toggleRanking = (idx: number) => {
         setExpandedRankings((prev: number[]) =>
@@ -104,13 +101,6 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const metrics = normalizedData.metrics;
     const isHighQuality = score >= 80;
 
-    // Capture Airtable Record ID from response
-    useEffect(() => {
-        if ((data as any)?.airtable_record_id) {
-            setRecordId((data as any).airtable_record_id);
-        }
-    }, [data]);
-
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-32">
             {/* Header Section - 2 Column for PC */}
@@ -120,7 +110,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-6">
                         <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V11)</h2>
+                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V12)</h2>
                     </div>
 
                     {(data as any).airtable_sync_failed && (
@@ -239,7 +229,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {data.ranking.map((item, idx) => {
+                    {(data?.ranking || []).map((item, idx) => {
                         const imageUrl = getFileUrl(item.filename);
 
                         return (
@@ -287,22 +277,13 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             {!isHighQuality && (
                 <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
                     <button
-                        onClick={() => setIsChatbotOpen(true)}
+                        onClick={() => alert("캠핏 파트너 센터 연결 예정")}
                         className="pointer-events-auto bg-[#01DF82] text-white font-black py-4 px-10 rounded-full shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center gap-3 text-[19px] ring-4 ring-white"
                     >
                         <span>캠핏에서 해결해봐요!</span>
                         <ArrowRight className="w-6 h-6" />
                     </button>
                 </div>
-            )}
-
-            {/* Chatbot Modal */}
-            {recordId && (
-                <ChatbotModal
-                    isOpen={isChatbotOpen}
-                    onClose={() => setIsChatbotOpen(false)}
-                    recordId={recordId}
-                />
             )}
         </div>
     );
