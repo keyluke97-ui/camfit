@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2, Share2, Check } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, AlertCircle, CheckCircle2, Share2, Check } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter";
 import { ChatbotModal } from "@/components/chatbot/ChatbotModal";
@@ -70,9 +70,10 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     // Helper to render bold text from **markdown**
     const renderBoldText = (text: string) => {
         const sanitized = sanitizeText(text);
+        if (!sanitized) return null;
         const parts = sanitized.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
+            if (part && part.startsWith('**') && part.endsWith('**')) {
                 return <strong key={i} className="font-extrabold text-gray-950 underline decoration-camfit-green/30 decoration-4 underline-offset-2">{part.slice(2, -2)}</strong>;
             }
             return part;
@@ -98,6 +99,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         }
 
         // 2. Fallback: Match by original filename
+        if (!Array.isArray(files)) return null;
         const matchingFile = files.find(f => {
             if (!f || !f.name) return false;
             const fName = f.name.toLowerCase().trim();
@@ -139,8 +141,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
     // Adapt V2 data to Dashboard View Model
     const normalizedData = normalizeV2Data(data);
-    const score = normalizedData.totalScore;
-    const metrics = normalizedData.metrics;
+    const score = normalizedData.totalScore || 0;
+    const metrics = normalizedData.metrics || [];
     const isHighQuality = score >= 80;
 
     // Capture Airtable Record ID from response
