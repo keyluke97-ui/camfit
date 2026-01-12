@@ -81,7 +81,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
     // Robust image matching
     const getFileUrl = (filename: string) => {
-        if (!filename) return null;
+        if (!filename || typeof window === 'undefined') return null;
         const normalized = filename.toLowerCase().trim();
 
         // 1. Match by index-based identifier (e.g., input_file_1.png)
@@ -89,16 +89,26 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         if (match && match[1]) {
             const index = parseInt(match[1]) - 1;
             if (files[index]) {
-                return URL.createObjectURL(files[index]);
+                try {
+                    return URL.createObjectURL(files[index]);
+                } catch (e) {
+                    return null;
+                }
             }
         }
 
         // 2. Fallback: Match by original filename
         const matchingFile = files.find(f => {
+            if (!f || !f.name) return false;
             const fName = f.name.toLowerCase().trim();
             return fName === normalized || fName.split('.')[0] === normalized.split('.')[0];
         });
-        return matchingFile ? URL.createObjectURL(matchingFile) : null;
+
+        try {
+            return matchingFile ? URL.createObjectURL(matchingFile) : null;
+        } catch (e) {
+            return null;
+        }
     };
 
     if (isLoading) {

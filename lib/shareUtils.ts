@@ -6,8 +6,10 @@ import { AnalysisReport } from "./types";
 export function encodeResultToURL(data: AnalysisReport): string {
     try {
         const jsonString = JSON.stringify(data);
-        const base64 = btoa(encodeURIComponent(jsonString));
-        return base64;
+        const encoded = typeof window !== 'undefined'
+            ? btoa(encodeURIComponent(jsonString))
+            : Buffer.from(encodeURIComponent(jsonString)).toString('base64');
+        return encoded;
     } catch (error) {
         console.error("Failed to encode result:", error);
         return "";
@@ -19,9 +21,10 @@ export function encodeResultToURL(data: AnalysisReport): string {
  */
 export function decodeURLToResult(urlParam: string): AnalysisReport | null {
     try {
-        const jsonString = decodeURIComponent(atob(urlParam));
-        const data = JSON.parse(jsonString);
-        return data as AnalysisReport;
+        const jsonString = typeof window !== 'undefined'
+            ? decodeURIComponent(atob(urlParam))
+            : decodeURIComponent(Buffer.from(urlParam, 'base64').toString());
+        return JSON.parse(jsonString) as AnalysisReport;
     } catch (error) {
         console.error("Failed to decode result:", error);
         return null;

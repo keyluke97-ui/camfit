@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { UploadSection } from "@/components/dashboard/UploadSection";
 import { AnalysisDashboard } from "@/components/dashboard/AnalysisDashboard";
+import { decodeURLToResult } from "@/lib/shareUtils";
 
 export default function Home() {
     const [analysisData, setAnalysisData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    // Lifted State for Image Preview Sharing
     const [files, setFiles] = useState<File[]>([]);
+    const searchParams = useSearchParams();
+
+    // Handle shared result from URL
+    useEffect(() => {
+        const resultParam = searchParams.get("result");
+        if (resultParam) {
+            const decoded = decodeURLToResult(resultParam);
+            if (decoded) {
+                setAnalysisData(decoded);
+            }
+        }
+    }, [searchParams]);
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-8 lg:p-24 relative overflow-hidden bg-gray-50">
