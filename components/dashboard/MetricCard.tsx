@@ -44,7 +44,7 @@ export function MetricCard({ label, score, comment, description, trend, metricId
                 <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-camfit-green transition-all duration-1000"
-                        style={{ width: `${isNaN(score) ? 0 : score}%` }}
+                        style={{ width: `${score}%` }}
                     />
                 </div>
             </div>

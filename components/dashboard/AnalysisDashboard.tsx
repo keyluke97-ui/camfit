@@ -5,11 +5,10 @@ import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, AlertCircle, CheckCircle2, Share2, Check } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter";
 import { ChatbotModal } from "@/components/chatbot/ChatbotModal";
-import { encodeResultToURL, copyToClipboard } from "@/lib/shareUtils";
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -22,39 +21,11 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [isChatbotOpen, setIsChatbotOpen] = useState(false);
     const [recordId, setRecordId] = useState<string | null>(null);
-    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const toggleRanking = (idx: number) => {
         setExpandedRankings((prev: number[]) =>
             prev.includes(idx) ? prev.filter((i: number) => i !== idx) : [...prev, idx]
         );
-    };
-
-    const showToast = (message: string) => {
-        setToastMessage(message);
-        setTimeout(() => setToastMessage(null), 3000);
-    };
-
-    const handleCopyDescription = async () => {
-        if (!data?.description) return;
-        const success = await copyToClipboard(data.description);
-        if (success) {
-            showToast("✅ 추천 소개글이 복사되었습니다!");
-        } else {
-            showToast("❌ 복사에 실패했습니다.");
-        }
-    };
-
-    const handleShareURL = async () => {
-        if (!data || typeof window === 'undefined') return;
-        const encoded = encodeResultToURL(data);
-        const url = `${window.location.origin}${window.location.pathname}?result=${encoded}`;
-        const success = await copyToClipboard(url);
-        if (success) {
-            showToast("✅ 공유 링크가 복사되었습니다!");
-        } else {
-            showToast("❌ 링크 복사에 실패했습니다.");
-        }
     };
 
     const toggleDescription = () => {
@@ -70,10 +41,9 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     // Helper to render bold text from **markdown**
     const renderBoldText = (text: string) => {
         const sanitized = sanitizeText(text);
-        if (!sanitized) return null;
         const parts = sanitized.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
-            if (part && part.startsWith('**') && part.endsWith('**')) {
+            if (part.startsWith('**') && part.endsWith('**')) {
                 return <strong key={i} className="font-extrabold text-gray-950 underline decoration-camfit-green/30 decoration-4 underline-offset-2">{part.slice(2, -2)}</strong>;
             }
             return part;
@@ -82,7 +52,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
     // Robust image matching
     const getFileUrl = (filename: string) => {
-        if (!filename || typeof window === 'undefined') return null;
+        if (!filename) return null;
         const normalized = filename.toLowerCase().trim();
 
         // 1. Match by index-based identifier (e.g., input_file_1.png)
@@ -90,27 +60,16 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         if (match && match[1]) {
             const index = parseInt(match[1]) - 1;
             if (files[index]) {
-                try {
-                    return URL.createObjectURL(files[index]);
-                } catch (e) {
-                    return null;
-                }
+                return URL.createObjectURL(files[index]);
             }
         }
 
         // 2. Fallback: Match by original filename
-        if (!Array.isArray(files)) return null;
         const matchingFile = files.find(f => {
-            if (!f || !f.name) return false;
             const fName = f.name.toLowerCase().trim();
             return fName === normalized || fName.split('.')[0] === normalized.split('.')[0];
         });
-
-        try {
-            return matchingFile ? URL.createObjectURL(matchingFile) : null;
-        } catch (e) {
-            return null;
-        }
+        return matchingFile ? URL.createObjectURL(matchingFile) : null;
     };
 
     if (isLoading) {
@@ -141,8 +100,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
     // Adapt V2 data to Dashboard View Model
     const normalizedData = normalizeV2Data(data);
-    const score = normalizedData.totalScore || 0;
-    const metrics = normalizedData.metrics || [];
+    const score = normalizedData.totalScore;
+    const metrics = normalizedData.metrics;
     const isHighQuality = score >= 80;
 
     // Capture Airtable Record ID from response
@@ -194,15 +153,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                             <div className="flex items-center justify-between bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-gray-500">종합 점수</span>
-                                    <div className="flex items-end gap-3">
-                                        <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
-                                        {score >= 90 && (
-                                            <div className="mb-2 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full shadow-lg animate-in slide-in-from-left duration-500">
-                                                <Trophy className="w-4 h-4 text-white" />
-                                                <span className="text-xs font-black text-white whitespace-nowrap">상위 5%</span>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
                                 </div>
                                 <div className="relative w-32 h-32">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -253,16 +204,6 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                     <Sparkles className="w-4 h-4 text-camfit-green" />
                                     <span>추천 소개글 가이드</span>
                                 </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleCopyDescription();
-                                    }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-camfit-green hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all hover:scale-105"
-                                >
-                                    <Copy className="w-3.5 h-3.5" />
-                                    <span className="hidden md:inline">복사하기</span>
-                                </button>
                                 <span className="text-[11px] text-camfit-green font-bold bg-camfit-green/10 px-2 py-0.5 rounded-full">✨ 클릭하여 전체보기</span>
                             </div>
                             <div className="bg-gradient-to-br from-gray-50 to-white px-5 py-4 rounded-xl text-gray-800 font-medium border border-gray-200 cursor-pointer hover:shadow-md transition-all relative group h-auto min-h-[80px]"
@@ -298,32 +239,32 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {data?.ranking?.map((item, idx) => {
-                        const imageUrl = item.filename ? getFileUrl(item.filename) : null;
+                    {data.ranking.map((item, idx) => {
+                        const imageUrl = getFileUrl(item.filename);
 
                         return (
                             <div key={idx} className="bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-white/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
                                 {/* Glass Rank Badge */}
                                 <div className="absolute top-3 left-3 bg-[#01DF82] text-white text-xs font-black px-3 py-1.5 rounded-full z-20 shadow-lg shadow-green-500/30">
-                                    RANK {item.rank || (idx + 1)}
+                                    RANK {item.rank}
                                 </div>
 
                                 <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative shadow-inner">
                                     {imageUrl ? (
-                                        <img src={imageUrl} alt={item.filename || "Ranking Image"} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
                                             <BarChart3 className="w-10 h-10 mb-2 opacity-30" />
                                             <span className="text-[10px] text-center font-medium">
                                                 {item.filename?.match(/input_file_(\d+)/i)
                                                     ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
-                                                    : (item.filename || "이미지 없음")}
+                                                    : (item.filename || "매칭 실패")}
                                             </span>
                                         </div>
                                     )}
                                     <div className="absolute bottom-2 right-2">
                                         <Badge variant="neutral" className="bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-0.5 shadow-sm text-gray-700">
-                                            {item.category || "기타"}
+                                            {item.category}
                                         </Badge>
                                     </div>
                                 </div>
@@ -334,7 +275,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                         }`}
                                     title="전체 보기"
                                 >
-                                    "{item.reason || "상세 이유 없음"}"
+                                    "{item.reason}"
                                 </p>
                             </div>
                         );
@@ -362,27 +303,6 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                     onClose={() => setIsChatbotOpen(false)}
                     recordId={recordId}
                 />
-            )}
-
-            {/* Share Result Button - Desktop: right-bottom, Mobile: left-bottom */}
-            <div className="fixed bottom-24 md:bottom-8 left-8 md:left-auto md:right-8 z-40">
-                <button
-                    onClick={handleShareURL}
-                    className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-bold py-3 px-4 rounded-full shadow-lg border-2 border-gray-200 transition-all hover:scale-105 hover:shadow-xl"
-                >
-                    <Share2 className="w-5 h-5" />
-                    <span className="hidden md:inline text-sm">결과 공유</span>
-                </button>
-            </div>
-
-            {/* Toast Notification */}
-            {toastMessage && (
-                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
-                    <div className="bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2">
-                        <Check className="w-5 h-5 text-camfit-green" />
-                        <span className="font-medium">{toastMessage}</span>
-                    </div>
-                </div>
             )}
         </div>
     );

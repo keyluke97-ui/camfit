@@ -40,5 +40,4 @@ export interface AnalysisReport {
     };
     photoCount?: number;
     uploadedUrls?: string[]; // All Vercel Blob URLs
-    assignedMD?: string;
 }

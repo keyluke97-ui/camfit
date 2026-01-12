@@ -1,39 +1,14 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { UploadSection } from "@/components/dashboard/UploadSection";
 import { AnalysisDashboard } from "@/components/dashboard/AnalysisDashboard";
-import { decodeURLToResult } from "@/lib/shareUtils";
 
 export default function Home() {
-    return (
-        <Suspense fallback={
-            <div className="flex min-h-screen items-center justify-center bg-gray-50">
-                <div className="w-8 h-8 border-4 border-camfit-green border-t-transparent rounded-full animate-spin" />
-            </div>
-        }>
-            <HomeContent />
-        </Suspense>
-    );
-}
-
-function HomeContent() {
     const [analysisData, setAnalysisData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    // Lifted State for Image Preview Sharing
     const [files, setFiles] = useState<File[]>([]);
-    const searchParams = useSearchParams();
-
-    // Handle shared result from URL
-    useEffect(() => {
-        const resultParam = searchParams.get("result");
-        if (resultParam) {
-            const decoded = decodeURLToResult(resultParam);
-            if (decoded) {
-                setAnalysisData(decoded);
-            }
-        }
-    }, [searchParams]);
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-4 md:p-8 lg:p-24 relative overflow-hidden bg-gray-50">
