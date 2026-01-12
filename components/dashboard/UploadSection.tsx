@@ -20,6 +20,10 @@ interface UploadSectionProps {
 const LEISURE_OPTIONS = ["계곡", "바다", "갯벌", "강/호수", "수상레저", "낚시", "휴양림", "등산", "숲/산"];
 const FACILITY_OPTIONS = ["트램펄린", "개별화장실/샤워실", "샤워실", "카페/매점", "바베큐장", "전기차충전소", "수영장", "놀이시설", "찜질방", "온수수영장", "반려견 동반"];
 const ACTIVITY_OPTIONS = ["갯벌체험", "체험활동", "농장체험", "동물체험"];
+const MD_OPTIONS = [
+    "박해준", "이석형", "박지환", "이제권", "김흥섭", "조아라",
+    "김형기", "임승범", "김태식", "캠핏 본사", "김명훈", "공윤기", "모르겠어요"
+];
 
 export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingChange }: UploadSectionProps) {
     const [isDragOver, setIsDragOver] = useState(false);
@@ -33,6 +37,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
     const [leisureTags, setLeisureTags] = useState<string[]>([]);
     const [facilityTags, setFacilityTags] = useState<string[]>([]);
     const [activityTags, setActivityTags] = useState<string[]>([]);
+    const [assignedMD, setAssignedMD] = useState<string>("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // ... (Helper functions remain same: handleFileDrop, addFiles, removeFile, compressImage)
@@ -112,6 +117,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             formData.append("leisureTags", JSON.stringify(leisureTags));
             formData.append("facilityTags", JSON.stringify(facilityTags));
             formData.append("activityTags", JSON.stringify(activityTags));
+            formData.append("assignedMD", assignedMD);
 
             const response = await fetch("/api/analyze", {
                 method: "POST",
@@ -194,6 +200,21 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                     <TagGroup label="시설" options={FACILITY_OPTIONS} selected={facilityTags} onChange={setFacilityTags} />
                     <div className="h-px bg-gray-200 w-full" />
                     <TagGroup label="체험활동" options={ACTIVITY_OPTIONS} selected={activityTags} onChange={setActivityTags} />
+                    <div className="h-px bg-gray-200 w-full" />
+                    {/* MD Selection */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 block">담당 MD</label>
+                        <select
+                            value={assignedMD}
+                            onChange={(e) => setAssignedMD(e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-camfit-green focus:border-transparent transition-all"
+                        >
+                            <option value="" className="text-gray-400">담당 MD를 선택하세요</option>
+                            {MD_OPTIONS.map((md) => (
+                                <option key={md} value={md}>{md}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
                 <div className="space-y-4">
                     <label className="text-sm font-bold text-gray-700 block">사진 업로드 ({files.length}/20)<span className="text-gray-400 font-normal ml-2 text-xs">*최소 5장 이상 권장</span></label>

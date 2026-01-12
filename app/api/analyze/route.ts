@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         const leisureTags = JSON.parse(formData.get("leisureTags") as string || "[]");
         const facilityTags = JSON.parse(formData.get("facilityTags") as string || "[]");
         const activityTags = JSON.parse(formData.get("activityTags") as string || "[]");
+        const assignedMD = formData.get("assignedMD") as string || "";
 
         if (!images || images.length === 0) {
             return NextResponse.json({ error: "No images provided" }, { status: 400 });
@@ -203,7 +204,8 @@ export async function POST(req: Request) {
             address,
             tags: { leisure: leisureTags, facility: facilityTags, activity: activityTags },
             photoCount: images.length,
-            uploadedUrls
+            uploadedUrls,
+            assignedMD
         };
 
         // Sequential Process: Save to Airtable before returning

@@ -46,7 +46,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     };
 
     const handleShareURL = async () => {
-        if (!data) return;
+        if (!data || typeof window === 'undefined') return;
         const encoded = encodeResultToURL(data);
         const url = `${window.location.origin}${window.location.pathname}?result=${encoded}`;
         const success = await copyToClipboard(url);
