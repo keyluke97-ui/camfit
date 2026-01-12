@@ -298,32 +298,32 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {data.ranking.map((item, idx) => {
-                        const imageUrl = getFileUrl(item.filename);
+                    {data?.ranking?.map((item, idx) => {
+                        const imageUrl = item.filename ? getFileUrl(item.filename) : null;
 
                         return (
                             <div key={idx} className="bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-white/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
                                 {/* Glass Rank Badge */}
                                 <div className="absolute top-3 left-3 bg-[#01DF82] text-white text-xs font-black px-3 py-1.5 rounded-full z-20 shadow-lg shadow-green-500/30">
-                                    RANK {item.rank}
+                                    RANK {item.rank || (idx + 1)}
                                 </div>
 
                                 <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative shadow-inner">
                                     {imageUrl ? (
-                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+                                        <img src={imageUrl} alt={item.filename || "Ranking Image"} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                     ) : (
                                         <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
                                             <BarChart3 className="w-10 h-10 mb-2 opacity-30" />
                                             <span className="text-[10px] text-center font-medium">
                                                 {item.filename?.match(/input_file_(\d+)/i)
                                                     ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
-                                                    : (item.filename || "매칭 실패")}
+                                                    : (item.filename || "이미지 없음")}
                                             </span>
                                         </div>
                                     )}
                                     <div className="absolute bottom-2 right-2">
                                         <Badge variant="neutral" className="bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-0.5 shadow-sm text-gray-700">
-                                            {item.category}
+                                            {item.category || "기타"}
                                         </Badge>
                                     </div>
                                 </div>
@@ -334,7 +334,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                         }`}
                                     title="전체 보기"
                                 >
-                                    "{item.reason}"
+                                    "{item.reason || "상세 이유 없음"}"
                                 </p>
                             </div>
                         );
