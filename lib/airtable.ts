@@ -2,7 +2,7 @@ import Airtable from 'airtable';
 import { AnalysisReport } from './types';
 
 // Lazy initialization to prevent build-time crashes if env vars are missing
-const getBase = () => {
+export const getBase = () => {
     const key = process.env.AIRTABLE_API_KEY;
     const baseId = process.env.AIRTABLE_BASE_ID;
 

@@ -40,4 +40,6 @@ export interface AnalysisReport {
     };
     photoCount?: number;
     uploadedUrls?: string[]; // All Vercel Blob URLs
+    airtable_record_id?: string;
+    airtable_sync_failed?: boolean;
 }
