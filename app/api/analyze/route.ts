@@ -212,6 +212,8 @@ export async function POST(req: Request) {
 
         if (airtableResult?.success) {
             console.log("✅ Airtable Save Success, ID:", airtableResult.id);
+            // Include Record ID for chatbot integration
+            (finalReport as any).airtable_record_id = airtableResult.id;
         } else {
             console.warn("❌ Airtable Save Failed:", airtableResult?.error);
 

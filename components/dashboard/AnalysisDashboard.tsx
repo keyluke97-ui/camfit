@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2, Share2, Check } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
-import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
+import { normalizeV2Data } from "@/lib/adapter";
+import { ChatbotModal } from "@/components/chatbot/ChatbotModal";
+import { encodeResultToURL, copyToClipboard } from "@/lib/shareUtils";
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -18,11 +20,41 @@ interface AnalysisDashboardProps {
 export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashboardProps) {
     const [expandedRankings, setExpandedRankings] = useState<number[]>([]);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+    const [recordId, setRecordId] = useState<string | null>(null);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const toggleRanking = (idx: number) => {
         setExpandedRankings((prev: number[]) =>
             prev.includes(idx) ? prev.filter((i: number) => i !== idx) : [...prev, idx]
         );
+    };
+
+    const showToast = (message: string) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    const handleCopyDescription = async () => {
+        if (!data?.description) return;
+        const success = await copyToClipboard(data.description);
+        if (success) {
+            showToast("✅ 추천 소개글이 복사되었습니다!");
+        } else {
+            showToast("❌ 복사에 실패했습니다.");
+        }
+    };
+
+    const handleShareURL = async () => {
+        if (!data) return;
+        const encoded = encodeResultToURL(data);
+        const url = `${window.location.origin}${window.location.pathname}?result=${encoded}`;
+        const success = await copyToClipboard(url);
+        if (success) {
+            showToast("✅ 공유 링크가 복사되었습니다!");
+        } else {
+            showToast("❌ 링크 복사에 실패했습니다.");
+        }
     };
 
     const toggleDescription = () => {
@@ -101,6 +133,13 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const metrics = normalizedData.metrics;
     const isHighQuality = score >= 80;
 
+    // Capture Airtable Record ID from response
+    useEffect(() => {
+        if ((data as any)?.airtable_record_id) {
+            setRecordId((data as any).airtable_record_id);
+        }
+    }, [data]);
+
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-32">
             {/* Header Section - 2 Column for PC */}
@@ -143,7 +182,15 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                             <div className="flex items-center justify-between bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
                                 <div className="flex flex-col">
                                     <span className="text-sm font-bold text-gray-500">종합 점수</span>
-                                    <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
+                                    <div className="flex items-end gap-3">
+                                        <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
+                                        {score >= 90 && (
+                                            <div className="mb-2 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full shadow-lg animate-in slide-in-from-left duration-500">
+                                                <Trophy className="w-4 h-4 text-white" />
+                                                <span className="text-xs font-black text-white whitespace-nowrap">상위 5%</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="relative w-32 h-32">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -194,6 +241,16 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                     <Sparkles className="w-4 h-4 text-camfit-green" />
                                     <span>추천 소개글 가이드</span>
                                 </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopyDescription();
+                                    }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-camfit-green hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all hover:scale-105"
+                                >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span className="hidden md:inline">복사하기</span>
+                                </button>
                                 <span className="text-[11px] text-camfit-green font-bold bg-camfit-green/10 px-2 py-0.5 rounded-full">✨ 클릭하여 전체보기</span>
                             </div>
                             <div className="bg-gradient-to-br from-gray-50 to-white px-5 py-4 rounded-xl text-gray-800 font-medium border border-gray-200 cursor-pointer hover:shadow-md transition-all relative group h-auto min-h-[80px]"
@@ -277,12 +334,42 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             {!isHighQuality && (
                 <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
                     <button
-                        onClick={() => alert("캠핏 파트너 센터 연결 예정")}
+                        onClick={() => setIsChatbotOpen(true)}
                         className="pointer-events-auto bg-[#01DF82] text-white font-black py-4 px-10 rounded-full shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center gap-3 text-[19px] ring-4 ring-white"
                     >
                         <span>캠핏에서 해결해봐요!</span>
                         <ArrowRight className="w-6 h-6" />
                     </button>
+                </div>
+            )}
+
+            {/* Chatbot Modal */}
+            {recordId && (
+                <ChatbotModal
+                    isOpen={isChatbotOpen}
+                    onClose={() => setIsChatbotOpen(false)}
+                    recordId={recordId}
+                />
+            )}
+
+            {/* Share Result Button - Desktop: right-bottom, Mobile: left-bottom */}
+            <div className="fixed bottom-24 md:bottom-8 left-8 md:left-auto md:right-8 z-40">
+                <button
+                    onClick={handleShareURL}
+                    className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-bold py-3 px-4 rounded-full shadow-lg border-2 border-gray-200 transition-all hover:scale-105 hover:shadow-xl"
+                >
+                    <Share2 className="w-5 h-5" />
+                    <span className="hidden md:inline text-sm">결과 공유</span>
+                </button>
+            </div>
+
+            {/* Toast Notification */}
+            {toastMessage && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top duration-300">
+                    <div className="bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2">
+                        <Check className="w-5 h-5 text-camfit-green" />
+                        <span className="font-medium">{toastMessage}</span>
+                    </div>
                 </div>
             )}
         </div>
