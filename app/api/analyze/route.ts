@@ -71,25 +71,78 @@ export async function POST(req: Request) {
             
             # MISSION:
             Analyze these camping site photos to evaluate if they meet "Camfit A-Grade Standards".
-            Provide a strict, professional, and strategic analysis for the host.
+            Provide a strict, professional, and strategic analysis for the host based on the Master Rubric below.
 
             # CONTEXT:
             - Camping Name: ${campingName}
             - Address (Location): ${address}
             - Tags: ${[...leisureTags, ...facilityTags, ...activityTags].join(", ")}
             - Photo Count: ${images.length}
+            - Current Season: January (겨울) - 설경과 따뜻한 실내 조명 대비가 중요
+
+            # MASTER RUBRIC (슈퍼팬 채점 가이드라인):
+            
+            ## 1. 비주얼 경쟁력 (vibe_score)
+            ### 90점 이상 기준:
+            - 드론 하이앵글 구도로 전체 풍경을 압도적으로 담음
+            - 매직아워(일몰 전후)의 따뜻하고 부드러운 자연광
+            - 텍스트가 없는 깨끗한 풍경 사진
+            - 시네마틱한 색감과 구도
+            
+            ### 60점 이하 감점 요소:
+            - 눈높이의 답답하고 평범한 구도
+            - 원색(빨강/파랑/초록) 천막이 화면을 지배
+            - 무질서한 주차 차량 노출
+            - 경고문, 안내판 등 지저분한 요소 노출
+            - 과도한 텍스트 삽입 (촌스러운 폰트)
+
+            ## 2. 청결 안심 지수 (hygiene_score)
+            ### 90점 이상 기준:
+            - 무광 그레이/베이지 타일의 고급스러운 화장실
+            - 물기 없이 깨끗한 세면대와 거울
+            - 매립형 LED 조명의 밝고 쾌적한 분위기
+            - 최신식 위생 설비
+            
+            ### 60점 이하 감점 요소:
+            - 개수대 밑 노출된 호스나 배관
+            - 초록색 수세미 등 생활감 있는 소품 노출
+            - 낡고 변색된 타일
+            - 습기 차고 어두운 조명
+            - 곰팡이 흔적이나 청소 상태 불량
+
+            ## 3. 콘텐츠 매력도 (contents_score)
+            ### 90점 이상 기준:
+            - 식물원, 별게이징 등 독보적 콘텐츠의 실체를 장면으로 증명
+            - 텍스트 없이 사진만으로 경험 가치 전달
+            - 고유한 체험 시설의 프리미엄 구도
+            - 계절별 특화 액티비티의 생생한 포착
+            
+            ### 60점 이하 감점 요소:
+            - 사진 위에 촌스러운 폰트로 텍스트 삽입
+            - 원색 플라스틱 놀이터 시설물 위주의 구도
+            - 일반적이고 차별성 없는 시설 나열
+            - 실체 없는 과장 광고성 연출
+
+            ## 4. 계절감 (season_score)
+            ### 90점 이상 기준 (현재 1월 기준):
+            - 설경과 텐트 내부 주황색 조명의 극적 대비
+            - 겨울 특화 시네마틱 연출 (백설+난로+캠핑카)
+            - 계절에 맞는 감성적 분위기
+            
+            ### 60점 이하 감점 요소:
+            - 겨울철에 수영장 사진 노출 (계절 부적합)
+            - 지저분한 쓰레기 봉투나 빨래 노출
+            - 계절감 없는 무미건조한 구도
+            - 시기 부적합한 콘텐츠 강조
 
             # INSTRUCTIONS:
             1. **LANGUAGE**: ALL OUTPUT MUST BE IN KOREAN (한국어).
             2. **TONE**: Professional, objective, yet encouraging (Smart & Sharp).
             3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and REQUIRED bold text (**) for critical action items.
-            4. **CRITERIA**:
-               - Vibe: 시각적 압도 (Visual aesthetics)
-               - Hygiene: 시설 청결 (Cleanliness)
-               - Contents: 경험 가치 (Fun factors, facilities)
-               - Season: 계절감 (Seasonal appeal)
-            5. **IMAGE LABELING**: Use friendly labels like "1번째 이미지".
-            6. **RANKING**: Select top 3 photos. Use technical labels (\`input_file_1.png\`, etc.) ONLY in "filename".
+            4. **IMAGE LABELING**: Use friendly labels like "1번째 이미지".
+            5. **RANKING**: Select top 3 photos. Use technical labels (\`input_file_1.png\`, etc.) ONLY in "filename".
+            6. **SCORING**: Apply the Master Rubric strictly. Be honest and actionable.
+            7. **총합 점수 (total_score)**: 4가지 항목의 평균값으로 자동 계산.
 
             # OUTPUT FORMAT (Strict JSON Only):
             {
