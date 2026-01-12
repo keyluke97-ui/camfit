@@ -1,12 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { UploadSection } from "@/components/dashboard/UploadSection";
 import { AnalysisDashboard } from "@/components/dashboard/AnalysisDashboard";
 import { decodeURLToResult } from "@/lib/shareUtils";
 
 export default function Home() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="w-8 h-8 border-4 border-camfit-green border-t-transparent rounded-full animate-spin" />
+            </div>
+        }>
+            <HomeContent />
+        </Suspense>
+    );
+}
+
+function HomeContent() {
     const [analysisData, setAnalysisData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<File[]>([]);
