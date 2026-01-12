@@ -40,5 +40,5 @@ export interface AnalysisReport {
     };
     photoCount?: number;
     uploadedUrls?: string[]; // All Vercel Blob URLs
-    assignedMD?: string; //담당 MD
+    assignedMD?: string;
 }

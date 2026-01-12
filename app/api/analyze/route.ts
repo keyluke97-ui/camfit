@@ -205,7 +205,7 @@ export async function POST(req: Request) {
             tags: { leisure: leisureTags, facility: facilityTags, activity: activityTags },
             photoCount: images.length,
             uploadedUrls,
-            assignedMD
+            assignedMD // Save for Airtable mapping
         };
 
         // Sequential Process: Save to Airtable before returning

@@ -48,7 +48,7 @@ export async function saveAnalysisResult(data: AnalysisReport) {
             "주변레저": data.tags?.leisure || [],
             "시설": data.tags?.facility || [],
             "체험활동": data.tags?.activity || [],
-            "담당MD": (data.assignedMD || "").trim(),
+            "담당 MD": data.assignedMD || "",
 
             // [AI 분석 결과 데이터]
             "종합 점수": Math.round(data.total_score || 0),
