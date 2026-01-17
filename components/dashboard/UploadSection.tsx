@@ -29,6 +29,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
     const [address, setAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [loadingStage, setLoadingStage] = useState<string>(""); // Detailed loading state
+    const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 }); // Progress tracking
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [leisureTags, setLeisureTags] = useState<string[]>([]);
@@ -55,8 +56,8 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
 
     const addFiles = (newFiles: File[]) => {
         const validFiles = newFiles.filter(f => f.type.startsWith('image/'));
-        if (files.length + validFiles.length > 20) {
-            setErrorMsg("사진은 최대 20장까지만 업로드 가능합니다.");
+        if (files.length + validFiles.length > 10) {
+            setErrorMsg("최고의 분석 결과를 위해 사진은 최대 10장까지만 선택 가능합니다.");
             return;
         }
 
@@ -102,44 +103,48 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         setErrorMsg(null);
 
         try {
-            // Step 1: Compression
-            setLoadingStage("모바일 최적화 및 압축 중...");
-            const compressedFiles = [];
+            // Initialize progress
+            setUploadProgress({ current: 0, total: files.length });
+            const uploadedUrls: string[] = [];
 
-            // Sequential compression to save memory
+            // STRICT SEQUENTIAL PROCESSING: One file at a time
             for (let i = 0; i < files.length; i++) {
+                const fileNum = i + 1;
+                const totalFiles = files.length;
+
+                // Step 1: Compress
+                setLoadingStage(`사진 정리 중이에요 (${fileNum}/${totalFiles})`);
+                let compressedFile: File;
                 try {
-                    const compressed = await imageCompression(files[i], {
+                    compressedFile = await imageCompression(files[i], {
                         maxSizeMB: 1.5,
                         maxWidthOrHeight: 1920,
                         useWebWorker: true
                     });
-                    compressedFiles.push(compressed);
                 } catch (err) {
                     console.warn(`Compression failed for file ${i}, using original.`);
-                    compressedFiles.push(files[i]);
+                    compressedFile = files[i];
                 }
-            }
 
-            // Step 2: Upload to Vercel Blob (Client Side)
-            setLoadingStage("클라우드 서버로 안전하게 전송 중...");
-            const uploadedUrls = [];
-
-            // Batch uploads (concurrency 3)
-            const uploadBatch = async (file: File) => {
-                const newBlob = await upload(`camfit/${Date.now()}_${file.name}`, file, {
+                // Step 2: Upload to Vercel Blob
+                setLoadingStage(`사진 올리는 중이에요 (${fileNum}/${totalFiles})`);
+                const blob = await upload(`camfit/${Date.now()}_img${fileNum}.jpg`, compressedFile, {
                     access: 'public',
                     handleUploadUrl: '/api/upload',
                 });
-                return newBlob.url;
-            };
+                uploadedUrls.push(blob.url);
 
-            // Using simple Promise.all for now, can be optimized further if needed
-            // Optimized: We upload specific files
-            uploadedUrls.push(...await Promise.all(compressedFiles.map(uploadBatch)));
+                // Step 3: Aggressive Memory Cleanup
+                if ((files[i] as any).preview) {
+                    URL.revokeObjectURL((files[i] as any).preview);
+                }
+
+                // Step 4: Update Progress
+                setUploadProgress({ current: fileNum, total: totalFiles });
+            }
 
             // Step 3: AI Analysis (Send URLs only)
-            setLoadingStage("AI가 캠핑장을 정밀 분석 중입니다...");
+            setLoadingStage("사장님 숙소를 꿈꿈히 살펴보는 중이에요...");
 
             const response = await fetch("/api/analyze", {
                 method: "POST",
@@ -169,6 +174,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             setIsLoading(false);
             onLoadingChange(false);
             setLoadingStage("");
+            setUploadProgress({ current: 0, total: 0 });
         }
     };
 
@@ -176,9 +182,9 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         <GlassCard className="space-y-8 animate-in slide-in-from-left duration-500">
             <div className="space-y-2 border-b border-gray-100 pb-4">
                 <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-camfit-dark to-camfit-green">
-                    Step 1. 기본 정보 & 태그 선택
+                    사장님 숙소 정보 입력
                 </h3>
-                <p className="text-sm text-gray-500">정확한 분석을 위해 캠핑장의 특징을 모두 선택해주세요.</p>
+                <p className="text-sm text-gray-600">정확한 진단을 위해 간단히 입력해 주세요.</p>
             </div>
 
             {/* ERROR BANNER */}
@@ -227,7 +233,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                     <TagGroup label="체험활동" options={ACTIVITY_OPTIONS} selected={activityTags} onChange={setActivityTags} />
                 </div>
                 <div className="space-y-4">
-                    <label className="text-sm font-bold text-gray-700 block">사진 업로드 ({files.length}/20)<span className="text-gray-400 font-normal ml-2 text-xs">*최소 5장 이상 권장</span></label>
+                    <label className="text-sm font-bold text-gray-700 block">사진 업로드 ({files.length}/10)<span className="text-gray-400 font-normal ml-2 text-xs">*중요한 사진 5~10장만 골라주세요</span></label>
                     <div className={cn("relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer min-h-[160px] flex flex-col items-center justify-center", isDragOver ? "border-camfit-green bg-camfit-green/10 scale-[1.02]" : "border-gray-300 hover:border-camfit-green hover:bg-gray-50", files.length > 0 ? "bg-white" : "")} onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleFileDrop} onClick={() => fileInputRef.current?.click()}>
                         <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files?.length && addFiles(Array.from(e.target.files))} />
                         {files.length === 0 ? (
@@ -260,8 +266,31 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                     </div>
                 </div>
 
+                {/* Progress UI - Shows during upload */}
+                {uploadProgress.total > 0 && (
+                    <div className="bg-camfit-green/5 border border-camfit-green/20 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="font-semibold text-camfit-dark">
+                                진행률: {uploadProgress.current}/{uploadProgress.total} 완료
+                            </span>
+                            <span className="text-camfit-green font-bold">
+                                {Math.round((uploadProgress.current / uploadProgress.total) * 100)}%
+                            </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <div
+                                className="bg-gradient-to-r from-camfit-green to-camfit-dark h-2.5 rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-xs text-gray-600 text-center">
+                            ⚠️ 창을 닫거나 새로고침하지 마세요. AI가 정밀 분석 중입니다.
+                        </p>
+                    </div>
+                )}
+
                 <Button className="w-full h-14 text-lg font-bold shadow-camfit-green/20 hover:shadow-camfit-green/40 rounded-xl" type="submit" disabled={files.length === 0 || isLoading} isLoading={isLoading}>
-                    {isLoading ? (loadingStage || "AI 분석 중...") : "AI 정밀 분석 시작하기"}
+                    {isLoading ? (loadingStage || "진단 중이에요...") : "내 숙소 진단받기"}
                 </Button>
             </form>
             <Script
