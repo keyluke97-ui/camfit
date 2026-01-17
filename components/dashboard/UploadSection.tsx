@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Script from "next/script";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { TagGroup } from "@/components/ui/TagGroup";
 import { UploadCloud, Loader2, X, Image as ImageIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import imageCompression from 'browser-image-compression';
+import { upload } from '@vercel/blob/client';
 
 interface UploadSectionProps {
     files: File[];
@@ -23,19 +25,26 @@ const ACTIVITY_OPTIONS = ["갯벌체험", "체험활동", "농장체험", "동�
 
 export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingChange }: UploadSectionProps) {
     const [isDragOver, setIsDragOver] = useState(false);
-    // Removed local files state
     const [campingName, setCampingName] = useState("");
     const [address, setAddress] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingStage, setLoadingStage] = useState<string>(""); // Detailed loading state
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // ... (Tag States and Refs remain same)
     const [leisureTags, setLeisureTags] = useState<string[]>([]);
     const [facilityTags, setFacilityTags] = useState<string[]>([]);
     const [activityTags, setActivityTags] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ... (Helper functions remain same: handleFileDrop, addFiles, removeFile, compressImage)
+    // Memory Cleanup for Previews
+    useEffect(() => {
+        return () => {
+            files.forEach(file => {
+                if ((file as any).preview) URL.revokeObjectURL((file as any).preview);
+            });
+        };
+    }, [files]);
+
     const handleFileDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
@@ -43,41 +52,29 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             addFiles(Array.from(e.dataTransfer.files));
         }
     };
+
     const addFiles = (newFiles: File[]) => {
         const validFiles = newFiles.filter(f => f.type.startsWith('image/'));
         if (files.length + validFiles.length > 20) {
             setErrorMsg("사진은 최대 20장까지만 업로드 가능합니다.");
             return;
         }
-        setFiles(prev => [...prev, ...validFiles]);
+
+        // Add preview property safely
+        const filesWithPreviews = validFiles.map(file => Object.assign(file, {
+            preview: URL.createObjectURL(file)
+        }));
+
+        setFiles(prev => [...prev, ...filesWithPreviews]);
         setErrorMsg(null);
     };
+
     const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index));
-    };
-    // Image Compression Helper
-    const compressImage = async (file: File): Promise<File> => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-            img.onload = () => {
-                const canvas = document.createElement("canvas");
-                let width = img.width;
-                let height = img.height;
-                const MAX_WIDTH = 1024;
-                const MAX_HEIGHT = 1024;
-                if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
-                else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext("2d");
-                ctx?.drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    if (blob) resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-                    else reject(new Error("Compression failed"));
-                }, "image/jpeg", 0.6);
-            };
-            img.onerror = (err) => reject(err);
+        setFiles(prev => {
+            const newFiles = [...prev];
+            const removed = newFiles.splice(index, 1)[0];
+            if ((removed as any).preview) URL.revokeObjectURL((removed as any).preview);
+            return newFiles;
         });
     };
 
@@ -95,48 +92,83 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         }
     };
 
+    // Client-Side Optimization: 1. Compress -> 2. Upload to Blob -> 3. Analysis
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (files.length === 0) return;
 
         setIsLoading(true);
         onLoadingChange(true);
-        setErrorMsg(null); // Clear previous errors
+        setErrorMsg(null);
 
         try {
-            const compressedFiles = await Promise.all(files.map(compressImage));
-            const formData = new FormData();
-            compressedFiles.forEach(file => formData.append("images", file));
-            formData.append("campingName", campingName);
-            formData.append("address", address);
-            formData.append("leisureTags", JSON.stringify(leisureTags));
-            formData.append("facilityTags", JSON.stringify(facilityTags));
-            formData.append("activityTags", JSON.stringify(activityTags));
+            // Step 1: Compression
+            setLoadingStage("모바일 최적화 및 압축 중...");
+            const compressedFiles = [];
+
+            // Sequential compression to save memory
+            for (let i = 0; i < files.length; i++) {
+                try {
+                    const compressed = await imageCompression(files[i], {
+                        maxSizeMB: 1.5,
+                        maxWidthOrHeight: 1920,
+                        useWebWorker: true
+                    });
+                    compressedFiles.push(compressed);
+                } catch (err) {
+                    console.warn(`Compression failed for file ${i}, using original.`);
+                    compressedFiles.push(files[i]);
+                }
+            }
+
+            // Step 2: Upload to Vercel Blob (Client Side)
+            setLoadingStage("클라우드 서버로 안전하게 전송 중...");
+            const uploadedUrls = [];
+
+            // Batch uploads (concurrency 3)
+            const uploadBatch = async (file: File) => {
+                const newBlob = await upload(`camfit/${Date.now()}_${file.name}`, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                });
+                return newBlob.url;
+            };
+
+            // Using simple Promise.all for now, can be optimized further if needed
+            // Optimized: We upload specific files
+            uploadedUrls.push(...await Promise.all(compressedFiles.map(uploadBatch)));
+
+            // Step 3: AI Analysis (Send URLs only)
+            setLoadingStage("AI가 캠핑장을 정밀 분석 중입니다...");
 
             const response = await fetch("/api/analyze", {
                 method: "POST",
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    imageUrls: uploadedUrls,
+                    campingName,
+                    address,
+                    leisureTags,
+                    facilityTags,
+                    activityTags
+                }),
             });
 
             if (!response.ok) {
-                // If response is not ok (e.g., 403 Forbidden), try to get text error
                 const errorText = await response.text();
-                // Check if it's an HTML error page or a simple string
-                const cleanError = errorText.includes("<!DOCTYPE")
-                    ? `서버 에러 (${response.status}): 요청 용량이 너무 크거나 접근이 거부되었습니다.`
-                    : errorText;
-                throw new Error(cleanError);
+                throw new Error(errorText || `Analysis Failed (${response.status})`);
             }
 
             const data = await response.json();
             onAnalysisComplete(data);
+
         } catch (error: any) {
-            console.error(error);
-            // Persistent Error Message UI
-            setErrorMsg(`⚠️ 분석 실패: ${error.message || "알 수 없는 오류가 발생했습니다."}`);
+            console.error("Upload/Analysis Error:", error);
+            setErrorMsg(`⚠️ 오류 발생: ${error.message || "알 수 없는 오류가 발생했습니다."}`);
         } finally {
             setIsLoading(false);
             onLoadingChange(false);
+            setLoadingStage("");
         }
     };
 
@@ -162,7 +194,6 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             )}
 
             <form className="space-y-8" onSubmit={handleSubmit}>
-                {/* ... (Rest of the form UI: Name Input, TagGroup, File Upload) ... */}
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-700">캠핑장 이름</label>
@@ -209,7 +240,12 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="aspect-square flex flex-col items-center justify-center border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-500 text-xs gap-1"><UploadCloud className="w-4 h-4" />추가하기</button>
                                 {files.map((file, idx) => (
                                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group shadow-sm bg-gray-100">
-                                        <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" onLoad={(e: React.SyntheticEvent<HTMLImageElement>) => URL.revokeObjectURL(e.currentTarget.src)} />
+                                        <img
+                                            src={(file as any).preview}
+                                            alt="preview"
+                                            className="w-full h-full object-cover"
+                                        // No onLoad revoke here, done in cleanup
+                                        />
 
                                         {/* Number Badge */}
                                         <div className="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 border border-white/20">
@@ -225,7 +261,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 </div>
 
                 <Button className="w-full h-14 text-lg font-bold shadow-camfit-green/20 hover:shadow-camfit-green/40 rounded-xl" type="submit" disabled={files.length === 0 || isLoading} isLoading={isLoading}>
-                    {isLoading ? "AI가 캠핑장을 정밀 분석 중입니다 (약 1분 소요)..." : "AI 정밀 분석 시작하기"}
+                    {isLoading ? (loadingStage || "AI 분석 중...") : "AI 정밀 분석 시작하기"}
                 </Button>
             </form>
             <Script

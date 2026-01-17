@@ -22,17 +22,10 @@ const CANDIDATE_MODELS = [
 
 export async function POST(req: Request) {
     try {
-        const formData = await req.formData();
-        const images = formData.getAll("images") as File[];
-        const campingName = formData.get("campingName") as string || "알 수 없는 캠핑장";
-        const address = formData.get("address") as string || "";
+        const body = await req.json();
+        const { imageUrls, campingName, address, leisureTags, facilityTags, activityTags } = body;
 
-        // Parse tags
-        const leisureTags = JSON.parse(formData.get("leisureTags") as string || "[]");
-        const facilityTags = JSON.parse(formData.get("facilityTags") as string || "[]");
-        const activityTags = JSON.parse(formData.get("activityTags") as string || "[]");
-
-        if (!images || images.length === 0) {
+        if (!imageUrls || imageUrls.length === 0) {
             return NextResponse.json({ error: "No images provided" }, { status: 400 });
         }
 
@@ -41,14 +34,21 @@ export async function POST(req: Request) {
             return NextResponse.json(MOCK_V2_RESPONSE);
         }
 
-        // 1. Parallel Upload to Vercel Blob (for Airtable) & Base64 Prep (for Gemini)
-        console.log("Uploading images to Vercel Blob...");
-        const uploadPromises = images.map((file, i) =>
-            put(`camfit/${Date.now()}_img_${i + 1}.jpg`, file, { access: 'public' })
-        );
+        const images = imageUrls as string[];
+
+        // 1. Fetch Images from URLs (Client Uploaded Blobs) and Convert to Base64 for Gemini
+        console.log(`Processing ${images.length} images from client URLs...`);
 
         const payloadParts: any[] = [];
-        const imageBuffers = await Promise.all(images.map(f => f.arrayBuffer()));
+
+        // Parallel Fetch
+        const imageBuffers = await Promise.all(
+            images.map(async (url) => {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`Failed to fetch image: ${url}`);
+                return res.arrayBuffer();
+            })
+        );
 
         for (let i = 0; i < images.length; i++) {
             const base64Data = Buffer.from(imageBuffers[i]).toString("base64");
@@ -56,15 +56,13 @@ export async function POST(req: Request) {
             payloadParts.push({
                 inlineData: {
                     data: base64Data,
-                    mimeType: images[i].type,
+                    mimeType: "image/jpeg", // Assuming JPEG from compression
                 }
             });
         }
 
-        // Wait for uploads to finish in background or now
-        const blobs = await Promise.all(uploadPromises);
-        const uploadedUrls = blobs.map(b => b.url);
-        console.log(`Uploaded ${uploadedUrls.length} images to Blob.`);
+        // URLs are already authoritative from client
+        const uploadedUrls = images;
 
         const prompt = `
             # ROLE: Senior Growth Editor of Camfit (Korea's No.1 Camping Platform)
