@@ -1,36 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { saveAnalysisResult } from '@/lib/airtable';
-import { sendErrorEmail } from '@/lib/email';
-import { AnalysisReport } from '@/lib/types';
 
-// Allow up to 60 seconds for analysis
-export const maxDuration = 60;
-export const dynamic = 'force-dynamic';
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
-
-// Priority list of models to try
-const CANDIDATE_MODELS = [
-    "gemini-3-flash-preview",     // 1. Newest! (Prompted by User)
-    "gemini-3-pro-preview",       // 2. Newest Pro
-    "gemini-1.5-pro-latest",      // 3. Documented Best Stable
-    "gemini-1.5-flash-latest",    // 4. Documented Fast Stable
-    "gemini-pro"                  // 5. Logic Fallback
-];
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
     try {
-        const body = await req.json();
-        const { imageUrls, campingName, address, leisureTags, facilityTags, activityTags } = body;
+        const body = await request.json();
+        const { imageUrls, campingName, address, tags } = body;
 
-        if (!imageUrls || imageUrls.length === 0) {
-            return NextResponse.json({ error: "No images provided" }, { status: 400 });
-        }
-
-        if (!process.env.GOOGLE_API_KEY) {
-            console.warn("No API Key. Returning Mock.");
-            return NextResponse.json(MOCK_V2_RESPONSE);
+        if (!imageUrls || !Array.isArray(imageUrls)) {
+            return NextResponse.json({ error: "Missing images" }, { status: 400 });
         }
 
         const images = imageUrls as string[];
@@ -60,182 +40,82 @@ export async function POST(req: Request) {
             });
         }
 
-        // URLs are already authoritative from client
-        const uploadedUrls = images;
+        // 2. AI Analysis Request
+        console.log("Starting Gemini Analysis...");
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            generationConfig: { responseMimeType: "application/json" }
+        });
 
         const prompt = `
-            # ROLE: Senior Growth Editor of Camfit (Korea's No.1 Camping Platform)
-            
-            # MISSION:
-            Analyze these camping site photos to evaluate if they meet "Camfit A-Grade Standards".
-            Provide a strict, professional, and strategic analysis for the host based on the Master Rubric below.
+당신은 캠핑장 전문 컨설턴트이자 포토 에디터입니다.
+제공된 사진들을 분석하여 사장님(40-60대)이 이해하기 쉬운 따뜻하고 전문적인 말투로 진단해주세요.
 
-            # CONTEXT:
-            - Camping Name: ${campingName}
-            - Address (Location): ${address}
-            - Tags: ${[...leisureTags, ...facilityTags, ...activityTags].join(", ")}
-            - Photo Count: ${images.length}
-            - Current Season: January (겨울) - 설경과 따뜻한 실내 조명 대비가 중요
+[분석 지침]
+1. 각 사진의 파일명(input_file_n.png)을 정확히 참조하여 사진 랭킹을 매기세요.
+2. vibe_score(비주얼), hygiene_score(청결), contents_score(콘텐츠), season_score(계절감)를 0~100점으로 평가하세요.
+3. total_score는 위 점수들의 평균이 아닌, 전체적인 완성도를 고려하여 산출하세요.
+4. '에디터 핵심 개선 전략'에는 사장님이 바로 실천할 수 있는 팁을 구체적으로 적어주세요.
 
-            # MASTER RUBRIC (슈퍼팬 채점 가이드라인):
-            
-            ## 1. 비주얼 경쟁력 (vibe_score)
-            ### 90점 이상 기준:
-            - 드론 하이앵글 구도로 전체 풍경을 압도적으로 담음
-            - 매직아워(일몰 전후)의 따뜻하고 부드러운 자연광
-            - 텍스트가 없는 깨끗한 풍경 사진
-            - 시네마틱한 색감과 구도
-            
-            ### 60점 이하 감점 요소:
-            - 눈높이의 답답하고 평범한 구도
-            - 원색(빨강/파랑/초록) 천막이 화면을 지배
-            - 무질서한 주차 차량 노출
-            - 경고문, 안내판 등 지저분한 요소 노출
-            - 과도한 텍스트 삽입 (촌스러운 폰트)
+[응답 형식 (JSON)]
+{
+  "total_score": number,
+  "one_line_intro": "따뜻한 한 줄 소개",
+  "description": "전체적인 분석 요약 (따뜻한 말투)",
+  "evaluation": {
+    "vibe": "항목별 상세 요약",
+    "vibe_score": number,
+    "hygiene": "청결/시설 상태 분석",
+    "hygiene_score": number,
+    "contents": "즐길거리/콘텐츠 분석",
+    "contents_score": number,
+    "season": "계절감/마케팅 효율 상세",
+    "season_score": number
+  },
+  "ranking": [
+    { "rank": 1, "filename": "input_file_n.png", "category": "Main", "reason": "이유" },
+    { "rank": 2, "filename": "input_file_m.png", "category": "Facility", "reason": "이유" },
+    { "rank": 3, "filename": "input_file_k.png", "category": "Activity", "reason": "이유" }
+  ],
+  "marketing_comment": "**강점**과 **개선점**이 포함된 구체적인 전략 코멘트"
+}
+`;
 
-            ## 2. 청결 안심 지수 (hygiene_score)
-            ### 90점 이상 기준:
-            - 무광 그레이/베이지 타일의 고급스러운 화장실
-            - 물기 없이 깨끗한 세면대와 거울
-            - 매립형 LED 조명의 밝고 쾌적한 분위기
-            - 최신식 위생 설비
-            
-            ### 60점 이하 감점 요소:
-            - 개수대 밑 노출된 호스나 배관
-            - 초록색 수세미 등 생활감 있는 소품 노출
-            - 낡고 변색된 타일
-            - 습기 차고 어두운 조명
-            - 곰팡이 흔적이나 청소 상태 불량
+        payloadParts.push({ text: prompt });
+        const result = await model.generateContent(payloadParts);
+        const response = await result.response;
+        const analysisData = JSON.parse(response.text());
 
-            ## 3. 콘텐츠 매력도 (contents_score)
-            ### 90점 이상 기준:
-            - 식물원, 별게이징 등 독보적 콘텐츠의 실체를 장면으로 증명
-            - 텍스트 없이 사진만으로 경험 가치 전달
-            - 고유한 체험 시설의 프리미엄 구도
-            - 계절별 특화 액티비티의 생생한 포착
-            
-            ### 60점 이하 감점 요소:
-            - 사진 위에 촌스러운 폰트로 텍스트 삽입
-            - 원색 플라스틱 놀이터 시설물 위주의 구도
-            - 일반적이고 차별성 없는 시설 나열
-            - 실체 없는 과장 광고성 연출
-
-            ## 4. 계절감 (season_score)
-            ### 90점 이상 기준 (현재 1월 기준):
-            - 설경과 텐트 내부 주황색 조명의 극적 대비
-            - 겨울 특화 시네마틱 연출 (백설+난로+캠핑카)
-            - 계절에 맞는 감성적 분위기
-            
-            ### 60점 이하 감점 요소:
-            - 겨울철에 수영장 사진 노출 (계절 부적합)
-            - 지저분한 쓰레기 봉투나 빨래 노출
-            - 계절감 없는 무미건조한 구도
-            - 시기 부적합한 콘텐츠 강조
-
-            # INSTRUCTIONS:
-            1. **LANGUAGE**: ALL OUTPUT MUST BE IN KOREAN (한국어).
-            2. **TONE**: Professional, objective, yet encouraging (Smart & Sharp).
-            3. **STRATEGY FORMAT**: For 'marketing_comment', use bullet points (-) and REQUIRED bold text (**) for critical action items.
-            4. **IMAGE LABELING**: Use friendly labels like "1번째 이미지".
-            5. **RANKING**: Select top 3 photos. Use technical labels (\`input_file_1.png\`, etc.) ONLY in "filename".
-            6. **SCORING**: Apply the Master Rubric strictly. Be honest and actionable.
-            7. **총합 점수 (total_score)**: 4가지 항목의 평균값으로 자동 계산.
-
-            # OUTPUT FORMAT (Strict JSON Only):
-            {
-                "total_score": (0-100),
-                "evaluation": { 
-                    "vibe": "Evaluation...", 
-                    "vibe_score": (0-100),
-                    "hygiene": "Evaluation...", 
-                    "hygiene_score": (0-100),
-                    "contents": "Evaluation...", 
-                    "contents_score": (0-100),
-                    "season": "Evaluation...", 
-                    "season_score": (0-100)
-                },
-                "ranking": [ 
-                    { "rank": 1, "filename": "exact_filename", "category": "Category", "reason": "Reason" }
-                ],
-                "marketing_comment": "Strategic advice...",
-                "upsell_needed": boolean,
-                "description": "SEO description...",
-                "one_line_intro": "Catchy intro (max 23 chars)"
+        // 3. Save to Airtable (Background try/catch)
+        let airtableId = "";
+        let airtableSyncFailed = false;
+        try {
+            const saveResult = await saveAnalysisResult({
+                ...analysisData,
+                campingName,
+                address,
+                tags,
+                uploadedUrls: images
+            });
+            if (saveResult.success) {
+                airtableId = saveResult.id!;
+            } else {
+                airtableSyncFailed = true;
             }
-        `;
-
-        let finalResult = null;
-        let lastError = null;
-
-        for (const modelName of CANDIDATE_MODELS) {
-            try {
-                const model = genAI.getGenerativeModel({ model: modelName });
-                const result = await model.generateContent([prompt, ...payloadParts]);
-                const response = await result.response;
-                const text = response.text();
-
-                if (text) {
-                    finalResult = text;
-                    break;
-                }
-            } catch (e: any) {
-                lastError = e;
-                continue;
-            }
+        } catch (e) {
+            console.error("Airtable sync error:", e);
+            airtableSyncFailed = true;
         }
 
-        if (!finalResult) throw lastError || new Error("AI Analysis Failed");
-
-        let jsonString = finalResult.replace(/```json/g, "").replace(/```/g, "").trim();
-        const firstBrace = jsonString.indexOf('{');
-        const lastBrace = jsonString.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1) jsonString = jsonString.substring(firstBrace, lastBrace + 1);
-
-        const aiData = JSON.parse(jsonString) as AnalysisReport;
-
-        // Attach Context
-        const finalReport: AnalysisReport = {
-            ...aiData,
-            campingName,
-            address,
-            tags: { leisure: leisureTags, facility: facilityTags, activity: activityTags },
-            photoCount: images.length,
-            uploadedUrls
-        };
-
-        // Sequential Process: Save to Airtable before returning
-        console.log("Saving results to Airtable for:", campingName);
-        const airtableResult = await saveAnalysisResult(finalReport);
-
-        if (airtableResult?.success) {
-            console.log("✅ Airtable Save Success, ID:", airtableResult.id);
-            (finalReport as any).airtable_record_id = airtableResult.id;
-        } else {
-            console.warn("❌ Airtable Save Failed:", airtableResult?.error);
-
-            // NEW: Send error log to administrator via email
-            await sendErrorEmail("Airtable Save Failure", airtableResult?.error, finalReport);
-
-            // Technical error is no longer shown to user, only a flag
-            (finalReport as any).airtable_sync_failed = true;
-        }
-
-        return NextResponse.json(finalReport);
+        return NextResponse.json({
+            ...analysisData,
+            uploadedUrls: images,
+            airtable_record_id: airtableId,
+            airtable_sync_failed: airtableSyncFailed
+        });
 
     } catch (error: any) {
-        console.error("Analysis Fatal Error:", error);
-        return NextResponse.json({ error: `Analysis failed: ${error.message}` }, { status: 500 });
+        console.error("Analyze API Error:", error);
+        return NextResponse.json({ error: error.message || "Analysis failed" }, { status: 500 });
     }
 }
-
-const MOCK_V2_RESPONSE: AnalysisReport = {
-    total_score: 85,
-    evaluation: { vibe: "Good", hygiene: "Clean", contents: "Fun", season: "Nice" },
-    ranking: [],
-    marketing_comment: "Mock Response",
-    upsell_needed: false,
-    description: "Mock Description",
-    campingName: "Mock",
-    tags: { leisure: [], facility: [], activity: [] },
-    photoCount: 0
-};
