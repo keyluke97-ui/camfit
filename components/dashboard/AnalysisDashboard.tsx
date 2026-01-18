@@ -207,8 +207,9 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         label={metric.label}
                         score={metric.score}
                         comment={metric.comment}
-                        trend={metric.trend}
+                        trend={metric.trend as "up" | "down" | "neutral"}
                         description={metric.description}
+                        metricId={metric.id as any}
                     />
                 ))}
             </div>
