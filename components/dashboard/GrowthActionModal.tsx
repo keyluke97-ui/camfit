@@ -187,135 +187,106 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                 </div>
 
                 {/* Body */}
-                <div className="p-6 bg-white space-y-6 overflow-y-auto flex-1">
+                <div className="p-6 bg-white space-y-8 overflow-y-auto flex-1">
 
-                    {/* Category 1: 사진 퀄리티 개선 */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Camera className="w-5 h-5 text-blue-600" />
-                            <h3 className="text-lg font-bold text-gray-900">사진 퀄리티 개선</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {['photographer', 'influencer', 'photo_contest'].map(serviceId => {
-                                const service = SERVICES[serviceId];
-                                const isSelected = selectedService === serviceId;
-                                return (
-                                    <button
-                                        key={serviceId}
-                                        onClick={() => handleServiceClick(serviceId)}
-                                        className={`relative border-2 rounded-xl p-4 text-left transition-all ${isSelected
-                                                ? 'border-camfit-green bg-camfit-green/5 shadow-lg'
-                                                : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-md'
-                                            }`}
-                                    >
-                                        {getRecommendationBadge(serviceId)}
-                                        <div className="font-bold text-gray-900 mb-1">{service.title}</div>
-                                        <div className="text-xs text-gray-500 line-clamp-2">{service.description}</div>
-                                        {isSelected && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-3 right-3" />}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    {/* Category Helper Component for Inline Expansion */}
+                    {Object.entries({
+                        '사진 퀄리티 개선': { icon: <Camera className="w-5 h-5 text-blue-600" />, ids: ['photographer', 'influencer', 'photo_contest'] },
+                        '우리 캠핑장만의 경쟁력': { icon: <Star className="w-5 h-5 text-yellow-600" />, ids: ['safe_cancel', 'easy_camping'] },
+                        '예약률 최적화': { icon: <TrendingDown className="w-5 h-5 text-red-600" />, ids: ['coupon'], condition: shouldShowCoupon, badge: "점수 70점 이상 추천" }
+                    }).map(([categoryName, category]) => {
+                        if (category.condition === false) return null;
 
-                    {/* Category 2: 우리 캠핑장만의 경쟁력 */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Star className="w-5 h-5 text-yellow-600" />
-                            <h3 className="text-lg font-bold text-gray-900">우리 캠핑장만의 경쟁력</h3>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {['safe_cancel', 'easy_camping'].map(serviceId => {
-                                const service = SERVICES[serviceId];
-                                const isSelected = selectedService === serviceId;
-                                return (
-                                    <button
-                                        key={serviceId}
-                                        onClick={() => handleServiceClick(serviceId)}
-                                        className={`relative border-2 rounded-xl p-4 text-left transition-all ${isSelected
-                                                ? 'border-camfit-green bg-camfit-green/5 shadow-lg'
-                                                : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-md'
-                                            }`}
-                                    >
-                                        <div className="font-bold text-gray-900 mb-1">{service.title}</div>
-                                        <div className="text-xs text-gray-500 line-clamp-2">{service.description}</div>
-                                        {isSelected && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-3 right-3" />}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                        const isAnyInThisCategorySelected = category.ids.includes(selectedService || "");
 
-                    {/* Category 3: 예약률 최적화 (조건부 표시) */}
-                    {shouldShowCoupon && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 mb-3">
-                                <TrendingDown className="w-5 h-5 text-red-600" />
-                                <h3 className="text-lg font-bold text-gray-900">예약률 최적화</h3>
-                                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">점수 70점 이상 추천</span>
-                            </div>
-                            <button
-                                onClick={() => handleServiceClick('coupon')}
-                                className={`relative w-full border-2 rounded-xl p-4 text-left transition-all ${selectedService === 'coupon'
-                                        ? 'border-camfit-green bg-camfit-green/5 shadow-lg'
-                                        : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-md'
-                                    }`}
-                            >
-                                <div className="font-bold text-gray-900 mb-1">{SERVICES.coupon.title}</div>
-                                <div className="text-xs text-gray-500 line-clamp-2">{SERVICES.coupon.description}</div>
-                                {selectedService === 'coupon' && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-3 right-3" />}
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Step 2: 상세 설명 (선택 시에만 표시) */}
-                    {selectedService && (
-                        <div className="bg-gradient-to-br from-camfit-green/10 to-emerald-50 border-2 border-camfit-green rounded-2xl p-6 space-y-4 animate-in slide-in-from-bottom duration-300">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h4 className="text-xl font-bold text-gray-900 mb-2">{SERVICES[selectedService].title}</h4>
-                                    <p className="text-gray-700 text-sm leading-relaxed">{SERVICES[selectedService].description}</p>
+                        return (
+                            <div key={categoryName} className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    {category.icon}
+                                    <h3 className="text-lg font-bold text-gray-900">{categoryName}</h3>
+                                    {category.badge && (
+                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">{category.badge}</span>
+                                    )}
                                 </div>
-                                <button
-                                    onClick={() => setSelectedService(null)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
 
-                            <div className="space-y-2">
-                                {SERVICES[selectedService].benefits.map((benefit, idx) => (
-                                    <div key={idx} className="text-sm text-gray-700 font-medium">{benefit}</div>
-                                ))}
-                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+                                    {category.ids.map(serviceId => {
+                                        const service = SERVICES[serviceId];
+                                        const isSelected = selectedService === serviceId;
+                                        return (
+                                            <button
+                                                key={serviceId}
+                                                onClick={() => handleServiceClick(serviceId)}
+                                                className={`relative min-w-[200px] border-2 rounded-xl p-4 text-left transition-all ${isSelected
+                                                    ? 'border-camfit-green bg-camfit-green/5 shadow-md scale-[0.98]'
+                                                    : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-sm'
+                                                    }`}
+                                            >
+                                                {getRecommendationBadge(serviceId)}
+                                                <div className="font-bold text-gray-900 mb-1">{service.title}</div>
+                                                <div className="text-[11px] text-gray-500 line-clamp-2 leading-tight">{service.description}</div>
+                                                {isSelected && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-3 right-3" />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
 
-                            <button
-                                onClick={() => handleFinalSubmit(SERVICES[selectedService])}
-                                disabled={loadingAction === selectedService}
-                                className="w-full bg-camfit-green text-white font-bold py-4 px-6 rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-camfit-green/30"
-                            >
-                                {loadingAction === selectedService ? (
-                                    <span className="animate-spin">⏳</span>
-                                ) : (
-                                    <>
-                                        <span>{SERVICES[selectedService].cta}</span>
-                                        <ArrowRight className="w-5 h-5" />
-                                    </>
+                                {/* Inline Detailed Description (Accordion) */}
+                                {isAnyInThisCategorySelected && selectedService && (
+                                    <div className="bg-emerald-50/50 border-2 border-camfit-green/30 rounded-2xl p-6 space-y-5 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="flex items-start justify-between">
+                                            <div className="space-y-1">
+                                                <h4 className="text-xl font-black text-gray-900">{SERVICES[selectedService].title}</h4>
+                                                <p className="text-gray-600 text-sm leading-relaxed">{SERVICES[selectedService].description}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setSelectedService(null)}
+                                                className="bg-white/50 p-1.5 rounded-full text-gray-400 hover:text-gray-600 border border-gray-100"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+                                            {SERVICES[selectedService].benefits.map((benefit, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 font-bold bg-white/60 p-3 rounded-lg border border-camfit-green/10">
+                                                    <CheckCircle2 className="w-5 h-5 text-camfit-green fill-camfit-green/10 flex-shrink-0" />
+                                                    <span>{benefit.replace('✅ ', '')}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <button
+                                                onClick={() => handleFinalSubmit(SERVICES[selectedService])}
+                                                disabled={loadingAction === selectedService}
+                                                className="w-full bg-camfit-green text-white font-black py-5 px-8 rounded-xl hover:bg-emerald-600 transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl shadow-camfit-green/20 text-lg active:scale-[0.99]"
+                                            >
+                                                {loadingAction === selectedService ? (
+                                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <span>{SERVICES[selectedService].cta}</span>
+                                                        <ArrowRight className="w-6 h-6" />
+                                                    </>
+                                                )}
+                                            </button>
+                                            <p className="text-xs text-center text-gray-400 font-medium flex items-center justify-center gap-1.5">
+                                                <span className="text-amber-500">💡</span> 신청 후 담당자가 확인하여 영업일 기준 1~2일 내 연락드립니다
+                                            </p>
+                                        </div>
+                                    </div>
                                 )}
-                            </button>
-
-                            <p className="text-xs text-center text-gray-500">
-                                💡 신청 후 담당자가 확인하여 영업일 기준 1~2일 내 연락드립니다
-                            </p>
-                        </div>
-                    )}
+                            </div>
+                        );
+                    })}
+                </div>
                 </div>
 
                 <div className="p-4 bg-gray-50 text-center text-xs text-gray-400 font-medium flex-shrink-0 border-t">
                     Camfit Partner Success Team · 100곳 한정 지원
                 </div>
-            </GlassCard>
-        </div>
+            </GlassCard >
+        </div >
     );
 }

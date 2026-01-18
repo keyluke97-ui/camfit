@@ -154,7 +154,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             }
 
             // AI Analysis (Send Cloudinary URLs)
-            setLoadingStage("사장님 숙소를 꿈꿈히 살펴보는 중이에요...");
+            setLoadingStage("사장님 숙소를 꼼꼼히 살펴보는 중이에요...");
 
             const response = await fetch("/api/analyze", {
                 method: "POST",
@@ -249,7 +249,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                         {files.length === 0 ? (
                             <div className="flex flex-col items-center gap-3 relative z-10 pointer-events-none">
                                 <div className="p-4 bg-white rounded-full shadow-sm text-camfit-green"><UploadCloud className="w-8 h-8" /></div>
-                                <div><p className="font-semibold text-gray-900">클릭하거나 사진을 드래그하세요</p><p className="text-xs text-gray-500 mt-1">최대 20장까지 한 번에 선택 가능</p></div>
+                                <div><p className="font-semibold text-gray-900">클릭하거나 사진을 드래그하세요</p><p className="text-xs text-gray-500 mt-1">최대 10장까지 한 번에 선택 가능</p></div>
                             </div>
                         ) : (
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 w-full pt-2" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
