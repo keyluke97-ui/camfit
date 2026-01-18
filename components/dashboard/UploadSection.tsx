@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { TagGroup } from "@/components/ui/TagGroup";
 import { UploadCloud, Loader2, X, Image as ImageIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import imageCompression from 'browser-image-compression';
-import { upload } from '@vercel/blob/client';
 
 interface UploadSectionProps {
     files: File[];
@@ -93,7 +91,30 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         }
     };
 
-    // Client-Side Optimization: 1. Compress -> 2. Upload to Blob -> 3. Analysis
+    // Cloudinary Upload Helper
+    const uploadToCloudinary = async (file: File, index: number): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'camfit_photo');
+        formData.append('folder', 'camfit-analysis');
+
+        const response = await fetch(
+            'https://api.cloudinary.com/v1_1/dskn3gdhj/image/upload',
+            {
+                method: 'POST',
+                body: formData
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Cloudinary upload failed for image ${index + 1}`);
+        }
+
+        const data = await response.json();
+        return data.secure_url;
+    };
+
+    // Client-Side: Direct Cloudinary Upload
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (files.length === 0) return;
@@ -107,43 +128,32 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
             setUploadProgress({ current: 0, total: files.length });
             const uploadedUrls: string[] = [];
 
-            // STRICT SEQUENTIAL PROCESSING: One file at a time
+            // STRICT SEQUENTIAL UPLOAD: One file at a time
             for (let i = 0; i < files.length; i++) {
                 const fileNum = i + 1;
                 const totalFiles = files.length;
 
-                // Step 1: Compress
-                setLoadingStage(`사진 정리 중이에요 (${fileNum}/${totalFiles})`);
-                let compressedFile: File;
+                // Upload directly to Cloudinary
+                setLoadingStage(`사진 올리는 중이에요 (${fileNum}/${totalFiles})`);
+
                 try {
-                    compressedFile = await imageCompression(files[i], {
-                        maxSizeMB: 1.5,
-                        maxWidthOrHeight: 1920,
-                        useWebWorker: true
-                    });
+                    const cloudinaryUrl = await uploadToCloudinary(files[i], i);
+                    uploadedUrls.push(cloudinaryUrl);
                 } catch (err) {
-                    console.warn(`Compression failed for file ${i}, using original.`);
-                    compressedFile = files[i];
+                    console.error(`Upload failed for file ${i}:`, err);
+                    throw new Error(`사진 ${fileNum} 업로드 실패. 다시 시도해주세요.`);
                 }
 
-                // Step 2: Upload to Vercel Blob
-                setLoadingStage(`사진 올리는 중이에요 (${fileNum}/${totalFiles})`);
-                const blob = await upload(`camfit/${Date.now()}_img${fileNum}.jpg`, compressedFile, {
-                    access: 'public',
-                    handleUploadUrl: '/api/upload',
-                });
-                uploadedUrls.push(blob.url);
-
-                // Step 3: Aggressive Memory Cleanup
+                // Memory Cleanup
                 if ((files[i] as any).preview) {
                     URL.revokeObjectURL((files[i] as any).preview);
                 }
 
-                // Step 4: Update Progress
+                // Update Progress
                 setUploadProgress({ current: fileNum, total: totalFiles });
             }
 
-            // Step 3: AI Analysis (Send URLs only)
+            // AI Analysis (Send Cloudinary URLs)
             setLoadingStage("사장님 숙소를 꿈꿈히 살펴보는 중이에요...");
 
             const response = await fetch("/api/analyze", {

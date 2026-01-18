@@ -49,26 +49,18 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         });
     };
 
-    // Robust image matching
+    // Get Cloudinary URL for ranking images
     const getFileUrl = (filename: string) => {
-        if (!filename) return null;
-        const normalized = filename.toLowerCase().trim();
+        if (!filename || !data?.uploadedUrls) return null;
 
-        // 1. Match by index-based identifier (e.g., input_file_1.png)
-        const match = normalized.match(/input_file_(\d+)/i);
+        // Extract index from filename (e.g., "input_file_3.png" → index 2)
+        const match = filename.match(/input_file_(\d+)/i);
         if (match && match[1]) {
             const index = parseInt(match[1]) - 1;
-            if (files[index]) {
-                return URL.createObjectURL(files[index]);
-            }
+            return data.uploadedUrls[index] || null;
         }
 
-        // 2. Fallback: Match by original filename
-        const matchingFile = files.find(f => {
-            const fName = f.name.toLowerCase().trim();
-            return fName === normalized || fName.split('.')[0] === normalized.split('.')[0];
-        });
-        return matchingFile ? URL.createObjectURL(matchingFile) : null;
+        return null;
     };
 
     if (isLoading) {

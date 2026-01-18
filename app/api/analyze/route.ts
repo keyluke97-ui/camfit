@@ -1,4 +1,3 @@
-import { put } from "@vercel/blob";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { saveAnalysisResult } from '@/lib/airtable';
@@ -36,8 +35,8 @@ export async function POST(req: Request) {
 
         const images = imageUrls as string[];
 
-        // 1. Fetch Images from URLs (Client Uploaded Blobs) and Convert to Base64 for Gemini
-        console.log(`Processing ${images.length} images from client URLs...`);
+        // 1. Fetch Images from Cloudinary URLs and Convert to Base64 for Gemini
+        console.log(`Processing ${images.length} images from Cloudinary...`);
 
         const payloadParts: any[] = [];
 
@@ -56,7 +55,7 @@ export async function POST(req: Request) {
             payloadParts.push({
                 inlineData: {
                     data: base64Data,
-                    mimeType: "image/jpeg", // Assuming JPEG from compression
+                    mimeType: "image/jpeg",
                 }
             });
         }
