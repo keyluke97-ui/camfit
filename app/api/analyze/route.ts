@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         // 2. AI Analysis Request
         console.log("Starting Gemini Analysis...");
         const model = genAI.getGenerativeModel({
-            model: "gemini-3-flash",
+            model: "gemini-3-flash-preview",
             generationConfig: { responseMimeType: "application/json" }
         });
 
