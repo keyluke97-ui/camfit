@@ -284,6 +284,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 recordId={(data as any).airtable_record_id}
+                vibeScore={data?.evaluation?.vibe_score}
+                totalScore={data?.total_score}
             />
         </div>
     );
