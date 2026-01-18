@@ -94,8 +94,8 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '할인 쿠폰 발행',
         description: '사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요.',
         benefits: [
-            '점수 70점 이상 숙소 추천',
-            '5~10% 할인으로 전환율 상승',
+            '낮은 전환률 해결 솔루션',
+            '5~10% 할인으로 예약률 상승',
             '파트너센터에서 즉시 발행',
             '시즌별 전략적 활용 가능'
         ],
@@ -193,10 +193,8 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                     {Object.entries({
                         '사진 퀄리티 개선': { icon: <Camera className="w-5 h-5 text-blue-600" />, ids: ['photographer', 'influencer', 'photo_contest'] },
                         '우리 캠핑장만의 경쟁력': { icon: <Star className="w-5 h-5 text-yellow-600" />, ids: ['safe_cancel', 'easy_camping'] },
-                        '예약률 최적화': { icon: <TrendingDown className="w-5 h-5 text-red-600" />, ids: ['coupon'], condition: shouldShowCoupon, badge: "점수 70점 이상 추천" }
+                        '예약률 최적화': { icon: <TrendingDown className="w-5 h-5 text-red-600" />, ids: ['coupon'] }
                     }).map(([categoryName, category]) => {
-                        if (category.condition === false) return null;
-
                         const isAnyInThisCategorySelected = category.ids.includes(selectedService || "");
 
                         return (
@@ -204,28 +202,33 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                                 <div className="flex items-center gap-2">
                                     {category.icon}
                                     <h3 className="text-lg font-bold text-gray-900">{categoryName}</h3>
-                                    {category.badge && (
-                                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">{category.badge}</span>
-                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+                                <div className="grid grid-cols-1 gap-3">
                                     {category.ids.map(serviceId => {
-                                        const service = SERVICES[serviceId];
+                                        const originalService = SERVICES[serviceId];
+                                        // Dynamic text for coupon
+                                        const service = serviceId === 'coupon' ? {
+                                            ...originalService,
+                                            description: totalScore >= 70
+                                                ? "사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요."
+                                                : "사장님 캠핑장은 할인쿠폰을 통해 할인 혜택을 제공하여 고객을 모아보세요."
+                                        } : originalService;
+
                                         const isSelected = selectedService === serviceId;
                                         return (
                                             <button
                                                 key={serviceId}
                                                 onClick={() => handleServiceClick(serviceId)}
-                                                className={`relative min-w-[200px] border-2 rounded-xl p-4 text-left transition-all ${isSelected
-                                                    ? 'border-camfit-green bg-camfit-green/5 shadow-md scale-[0.98]'
+                                                className={`relative w-full border-2 rounded-xl p-5 text-left transition-all ${isSelected
+                                                    ? 'border-camfit-green bg-camfit-green/5 shadow-md scale-[0.99]'
                                                     : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-sm'
                                                     }`}
                                             >
                                                 {getRecommendationBadge(serviceId)}
-                                                <div className="font-bold text-gray-900 mb-1">{service.title}</div>
-                                                <div className="text-[11px] text-gray-500 line-clamp-2 leading-tight">{service.description}</div>
-                                                {isSelected && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-3 right-3" />}
+                                                <div className="font-bold text-gray-900 text-base mb-1.5">{service.title}</div>
+                                                <div className="text-xs text-gray-500 leading-relaxed pr-24">{service.description}</div>
+                                                {isSelected && <CheckCircle2 className="w-6 h-6 text-camfit-green absolute bottom-5 right-5" />}
                                             </button>
                                         );
                                     })}
@@ -237,7 +240,13 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                                         <div className="flex items-start justify-between">
                                             <div className="space-y-1">
                                                 <h4 className="text-xl font-black text-gray-900">{SERVICES[selectedService].title}</h4>
-                                                <p className="text-gray-600 text-sm leading-relaxed">{SERVICES[selectedService].description}</p>
+                                                <p className="text-gray-600 text-sm leading-relaxed">
+                                                    {selectedService === 'coupon'
+                                                        ? (totalScore >= 70
+                                                            ? "사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요."
+                                                            : "사장님 캠핑장은 할인쿠폰을 통해 할인 혜택을 제공하여 고객을 모아보세요.")
+                                                        : SERVICES[selectedService].description}
+                                                </p>
                                             </div>
                                             <button
                                                 onClick={() => setSelectedService(null)}
