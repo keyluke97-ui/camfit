@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { X, Camera, Sparkles, Star, TrendingDown, CheckCircle2, ArrowRight, Zap, Award } from "lucide-react";
+import { X, Camera, Sparkles, Star, TrendingDown, CheckCircle2, ArrowRight, Zap, Award, Loader2 } from "lucide-react";
 
 interface GrowthActionModalProps {
     isOpen: boolean;
@@ -28,10 +28,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '전문 사진가 신청',
         description: '2박 숙박권 + 촬영비 비딩으로 시중가보다 30% 저렴하게 전문가를 매칭해 드립니다.',
         benefits: [
-            '✅ 시중가 대비 30% 절감',
-            '✅ 2박 숙박권으로 촬영비 대체',
-            '✅ 캠핏 검증 전문가 매칭',
-            '✅ 고퀄리티 원본 파일 제공'
+            '시중가 대비 30% 절감',
+            '2박 숙박권으로 촬영비 대체',
+            '캠핏 검증 전문가 매칭',
+            '고퀄리티 원본 파일 제공'
         ],
         cta: '전문가 매칭 신청하기',
         field: '전문사진가_신청',
@@ -42,10 +42,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '인플루언서/체험단 마케팅',
         description: '비용 부담 제로! 2박 숙박권 제공 시 캠핏 파워 인플루언서 매칭 및 SNS 홍보를 도와드립니다.',
         benefits: [
-            '✅ 초기 비용 0원 (숙박권만 제공)',
-            '✅ 캠핏 파워 인플루언서 매칭',
-            '✅ 인스타/블로그 동시 홍보',
-            '✅ 리뷰 콘텐츠 2차 활용 가능'
+            '초기 비용 0원 (숙박권만 제공)',
+            '캠핏 파워 인플루언서 매칭',
+            '인스타/블로그 동시 홍보',
+            '리뷰 콘텐츠 2차 활용 가능'
         ],
         cta: '인플루언서 매칭 신청',
         field: '인플루언서_신청'
@@ -55,10 +55,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '사진 공모전 참여',
         description: '유저들이 직접 찍은 고퀄리티 홍보 사진을 확보할 기회! 별도 큐레이션 홍보 혜택 제공.',
         benefits: [
-            '✅ 유저 참여형 마케팅',
-            '✅ 고퀄리티 사진 무료 확보',
-            '✅ 캠핏 메인 큐레이션 노출',
-            '✅ 커뮤니티 활성화 효과'
+            '유저 참여형 마케팅',
+            '고퀄리티 사진 무료 확보',
+            '캠핏 메인 큐레이션 노출',
+            '커뮤니티 활성화 효과'
         ],
         cta: '공모전 참여 신청',
         field: '사진공모전_참여'
@@ -68,10 +68,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '안심취소 서비스',
         description: '취소 수수료 분쟁 끝! 고객이 취소해도 사장님 정산은 캠핏이 100% 보장합니다.',
         benefits: [
-            '✅ 예약률 평균 20% 상승',
-            '✅ 취소 수수료 분쟁 제로',
-            '✅ 캠핏이 정산 100% 보장',
-            '✅ 고객 신뢰도 향상'
+            '예약률 평균 20% 상승',
+            '취소 수수료 분쟁 제로',
+            '캠핏이 정산 100% 보장',
+            '고객 신뢰도 향상'
         ],
         cta: '안심취소 도입 신청',
         field: '안심취소_신청'
@@ -81,10 +81,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '이지캠핑 도입',
         description: '초기 비용 0원! 500만원 상당 스노우라인 장비 무상 설치 및 A/S 전담 지원으로 공실률을 해결하세요.',
         benefits: [
-            '✅ 초기 설치 비용 0원',
-            '✅ 500만원 상당 장비 무상 제공',
-            '✅ 전담 A/S 지원',
-            '✅ 공실률 감소 효과'
+            '초기 설치 비용 0원',
+            '500만원 상당 장비 무상 제공',
+            '전담 A/S 지원',
+            '공실률 감소 효과'
         ],
         cta: '이지캠핑 도입 상담',
         field: '이지캠핑_신청'
@@ -94,10 +94,10 @@ const SERVICES: Record<string, ServiceDetail> = {
         title: '할인 쿠폰 발행',
         description: '사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요.',
         benefits: [
-            '✅ 점수 70점 이상 숙소 추천',
-            '✅ 5~10% 할인으로 전환율 상승',
-            '✅ 파트너센터에서 즉시 발행',
-            '✅ 시즌별 전략적 활용 가능'
+            '점수 70점 이상 숙소 추천',
+            '5~10% 할인으로 전환율 상승',
+            '파트너센터에서 즉시 발행',
+            '시즌별 전략적 활용 가능'
         ],
         cta: '파트너센터에서 쿠폰 발행',
         field: '쿠폰 할인 긍정',
@@ -251,7 +251,7 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                                             {SERVICES[selectedService].benefits.map((benefit, idx) => (
                                                 <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 font-bold bg-white/60 p-3 rounded-lg border border-camfit-green/10">
                                                     <CheckCircle2 className="w-5 h-5 text-camfit-green fill-camfit-green/10 flex-shrink-0" />
-                                                    <span>{benefit.replace('✅ ', '')}</span>
+                                                    <span>{benefit}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -280,7 +280,6 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                             </div>
                         );
                     })}
-                </div>
                 </div>
 
                 <div className="p-4 bg-gray-50 text-center text-xs text-gray-400 font-medium flex-shrink-0 border-t">
