@@ -93,7 +93,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     const normalizedData = normalizeV2Data(data);
     const score = normalizedData.totalScore;
     const metrics = normalizedData.metrics;
-    const isHighQuality = score >= 80;
+    const isHighQuality = score >= 95; // Only hide for near-perfect scores
 
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-32">
