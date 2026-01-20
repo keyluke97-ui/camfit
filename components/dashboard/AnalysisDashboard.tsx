@@ -356,7 +356,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         {score <= 70 && (
                             <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
                                 <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
-                                <span>예약률을 높이려면 캠핏의 전문가 도움이 필요합니다</span>
+                                <span>캠핏의 서비스를 신청해보세요.</span>
                             </div>
                         )}
                         <button
@@ -365,13 +365,13 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 }`}
                         >
                             <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 justify-center w-full">
                                 <Sparkles className="w-6 h-6 text-camfit-dark" />
                                 <span className="text-[21px] tracking-tighter">
                                     캠핏 전문가에게 진단받기
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="absolute right-8 flex items-center pointer-events-none">
                                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                             </div>
                         </button>

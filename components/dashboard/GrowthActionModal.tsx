@@ -18,7 +18,7 @@ interface ServiceDetail {
     description: string;
     benefits: string[];
     cta: string;
-    field: string;
+    field?: string;
     externalLink?: string;
 }
 
@@ -42,11 +42,9 @@ const SERVICES: Record<string, ServiceDetail> = {
         benefits: [
             '초기 비용 0원 (숙박권만 제공)',
             '캠핏 파워 인플루언서 매칭',
-            '인스타/블로그 동시 홍보',
             '리뷰 콘텐츠 2차 활용 가능'
         ],
         cta: '인플루언서 매칭 신청',
-        field: '캠핏 마케팅 신청',
         externalLink: 'https://smore.im/form/V0zsSirSAM'
     },
     photo_contest: {
@@ -122,31 +120,45 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
         setLoadingAction(service.id);
 
         try {
-            // Airtable PATCH
-            const response = await fetch('/api/airtable/update', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    recordId,
-                    fields: { [service.field]: true }
-                })
-            });
+            // Airtable PATCH - Only if field is defined
+            if (service.field) {
+                const response = await fetch('/api/airtable/update', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recordId,
+                        fields: { [service.field]: true }
+                    })
+                });
 
-            if (!response.ok) throw new Error("Update failed");
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || "Update failed");
+                }
+            }
 
-            alert(`${service.title} 신청이 완료되었습니다! 담당자가 확인 후 연락드립니다.`);
+            // Show success message only if it was a sync action
+            if (service.field) {
+                alert(`${service.title} 신청이 완료되었습니다! 담당자가 확인 후 연락드립니다.`);
+            }
 
             // External link if exists
             if (service.externalLink) {
-                setTimeout(() => {
-                    window.open(service.externalLink, '_blank');
-                }, 500);
+                window.open(service.externalLink, '_blank');
             }
 
             setSelectedService(null);
-        } catch (error) {
-            console.error("Action Error:", error);
-            alert("처리 중 오류가 발생했습니다.");
+        } catch (error: any) {
+            console.error("Action Sync Error:", error);
+
+            // If sync fails but there's an external link, we should still let the user go there
+            if (service.externalLink) {
+                alert("데이터 동기화에 지연이 발생했으나, 신청 페이지로 이동합니다.");
+                window.open(service.externalLink, '_blank');
+                setSelectedService(null);
+            } else {
+                alert(`처리 중 오류가 발생했습니다: ${error.message}`);
+            }
         } finally {
             setLoadingAction(null);
         }
