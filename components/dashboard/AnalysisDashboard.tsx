@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { Badge } from "@/components/ui/Badge";
-import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, CircleAlert, CheckCircle2 } from "lucide-react";
+import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 import { GrowthActionModal } from "@/components/dashboard/GrowthActionModal";
@@ -38,11 +38,13 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     };
 
     // Helper to render bold text from **markdown**
-    const renderBoldText = (text: string) => {
+    const renderBoldText = (text: string | null | undefined) => {
+        if (!text) return "";
         const sanitized = sanitizeText(text);
+        if (!sanitized) return "";
         const parts = sanitized.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, i) => {
-            if (part.startsWith('**') && part.endsWith('**')) {
+            if (part && part.startsWith('**') && part.endsWith('**')) {
                 return <strong key={i} className="font-extrabold text-gray-950 underline decoration-camfit-green/30 decoration-4 underline-offset-2">{part.slice(2, -2)}</strong>;
             }
             return part;
@@ -50,11 +52,11 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     };
 
     // Get Cloudinary URL for ranking images
-    const getFileUrl = (filename: string) => {
+    const getFileUrl = (filename: string | null | undefined) => {
         if (!filename || !data?.uploadedUrls) return null;
 
         // Extract index from filename (e.g., "input_file_3.png" → index 2)
-        const match = filename.match(/input_file_(\d+)/i);
+        const match = filename.toString().match(/input_file_(\d+)/i);
         if (match && match[1]) {
             const index = parseInt(match[1]) - 1;
             return data.uploadedUrls[index] || null;
@@ -284,7 +286,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             <GrowthActionModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                recordId={(data as any).airtable_record_id}
+                recordId={(data as any).recordId || (data as any).airtable_record_id}
                 vibeScore={data?.evaluation?.vibe_score}
                 totalScore={data?.total_score}
             />
