@@ -121,6 +121,11 @@ export async function POST(request: Request) {
   ],
   "marketing_comment": "**강점**보다는 **개선 전략**에 80% 이상의 비중을 두며, 사장님이 실행 가능한 따뜻한 조언으로 작성"
 }
+
+### CRITICAL CONSTRAINTS:
+1. 제공된 사진이 총 ${images.length}장이므로, 모든 파일명은 반드시 input_file_1부터 input_file_${images.length} 사이에서만 선택해야 합니다.
+2. 존재하지 않는 파일명(예: input_file_${images.length + 1})을 절대 생성하지 마세요.
+3. 사진이 부족하더라도 반드시 제공된 범위 내의 사진만 사용하세요.
 `;
 
         payloadParts.push({ text: prompt });

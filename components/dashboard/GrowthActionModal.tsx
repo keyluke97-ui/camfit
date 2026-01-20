@@ -29,13 +29,11 @@ const SERVICES: Record<string, ServiceDetail> = {
         description: '2박 숙박권 + 촬영비 비딩으로 시중가보다 30% 저렴하게 전문가를 매칭해 드립니다.',
         benefits: [
             '시중가 대비 30% 절감',
-            '2박 숙박권으로 촬영비 대체',
             '캠핏 검증 전문가 매칭',
             '고퀄리티 원본 파일 제공'
         ],
         cta: '전문가 매칭 신청하기',
-        field: '전문사진가_신청',
-        externalLink: 'https://smore.im/form/V0zsSirSAM'
+        field: '전문가 사진 신청'
     },
     influencer: {
         id: 'influencer',
@@ -48,7 +46,8 @@ const SERVICES: Record<string, ServiceDetail> = {
             '리뷰 콘텐츠 2차 활용 가능'
         ],
         cta: '인플루언서 매칭 신청',
-        field: '인플루언서_신청'
+        field: '캠핏 마케팅 신청',
+        externalLink: 'https://smore.im/form/V0zsSirSAM'
     },
     photo_contest: {
         id: 'photo_contest',
@@ -56,7 +55,6 @@ const SERVICES: Record<string, ServiceDetail> = {
         description: '유저들이 직접 찍은 고퀄리티 홍보 사진을 확보할 기회! 별도 큐레이션 홍보 혜택 제공.',
         benefits: [
             '유저 참여형 마케팅',
-            '고퀄리티 사진 무료 확보',
             '캠핏 메인 큐레이션 노출',
             '커뮤니티 활성화 효과'
         ],
@@ -96,12 +94,12 @@ const SERVICES: Record<string, ServiceDetail> = {
         benefits: [
             '낮은 전환률 해결 솔루션',
             '5~10% 할인으로 예약률 상승',
-            '파트너센터에서 즉시 발행',
+            '캠지기센터에서 즉시 발행',
             '시즌별 전략적 활용 가능'
         ],
-        cta: '파트너센터에서 쿠폰 발행',
+        cta: '캠지기센터에서 쿠폰 발행',
         field: '쿠폰 할인 긍정',
-        externalLink: 'https://partner.camfit.co.kr'
+        externalLink: 'https://admin.camfit.co.kr/#/extra-service/host-coupon-list'
     }
 };
 
@@ -280,9 +278,11 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                                                     </>
                                                 )}
                                             </button>
-                                            <p className="text-xs text-center text-gray-400 font-medium flex items-center justify-center gap-1.5">
-                                                <span className="text-amber-500">💡</span> 신청 후 담당자가 확인하여 영업일 기준 1~2일 내 연락드립니다
-                                            </p>
+                                            {(selectedService === 'safe_cancel' || selectedService === 'easy_camping') && (
+                                                <p className="text-xs text-center text-gray-400 font-medium flex items-center justify-center gap-1.5 text-balance">
+                                                    <span className="text-amber-500">💡</span> 신청 후 담당자가 확인하여 영업일 기준 1~2일 내 연락드립니다
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}

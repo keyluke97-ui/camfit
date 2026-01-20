@@ -34,7 +34,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     // Helper to sanitize technical IDs like input_file_1 into 1번째 이미지
     const sanitizeText = (text: string) => {
         if (!text) return text;
-        return text.replace(/input_file_(\d+)(\.png)?/gi, "$1번째 이미지");
+        // Handle input_file, Input_file, Imput_file (common typo)
+        return text.replace(/(?:input|imput)_file_(\d+)(\.png)?/gi, "$1번째 이미지");
     };
 
     // Helper to render bold text from **markdown** and split into list items
@@ -129,11 +130,18 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         );
     }
 
-    // Adapt V2 data to Dashboard View Model
     const normalizedData = normalizeV2Data(data);
     const score = normalizedData.totalScore;
     const metrics = normalizedData.metrics;
     const isHighQuality = score >= 95; // Only hide for near-perfect scores
+
+    const getScoreMessage = (s: number) => {
+        if (s >= 90) return "압도적인 퀄리티! 캠핏 공식 A-Grade 인증 🏆";
+        if (s >= 70) return "훌륭한 관리 상태! 조금만 더 다듬으면 완벽해요 ✨";
+        if (s >= 50) return "예약 전환 가능성 포착! 핵심 이미지만 보완해볼까요? 💪";
+        if (s >= 40) return "긴급 진단이 필요합니다! 즉각적인 개선이 시급해요 🚨";
+        return "지금 바로 전문가의 도움을 받아보시겠어요? 🆘";
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-700 pb-32">
@@ -158,7 +166,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         {/* Strategy Column */}
                         <div className="space-y-6">
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-950 leading-tight">
-                                {isHighQuality ? "Camfit A-Grade 인증! 🏆" : "조금만 더 다듬으면 완벽해요! 💪"}
+                                {getScoreMessage(score)}
                             </h1>
 
                             <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/40 rounded-3xl p-7 border border-emerald-100/60 shadow-inner relative overflow-hidden backdrop-blur-sm">
@@ -191,12 +199,12 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                             strokeDasharray={`${score * 2.76} 276`} strokeLinecap="round" className="transition-all duration-1000 ease-out shadow-lg" />
                                     </svg>
                                     <div className="absolute inset-0 flex items-center justify-center transform rotate-90">
-                                        <div className={`w-2 h-2 rounded-full absolute top-1.5 ${score > 60 ? 'bg-camfit-green' : 'bg-red-400'}`} />
+                                        <div className={`w-2 h-2 rounded-full absolute top-1.5 ${score > 70 ? 'bg-camfit-green' : 'bg-red-400'}`} />
                                     </div>
                                 </div>
                             </div>
 
-                            {score <= 60 && (
+                            {score <= 70 && (
                                 <div className="bg-emerald-950 text-white p-5 rounded-2xl shadow-xl border border-white/10 relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:scale-110 transition-transform">
                                         <Trophy className="w-10 h-10 text-[#01DF82]" />
@@ -279,7 +287,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         key={metric.id}
                         label={metric.label}
                         score={metric.score}
-                        comment={metric.comment}
+                        comment={sanitizeText(metric.comment)}
                         trend={metric.trend as "up" | "down" | "neutral"}
                         description={metric.description}
                         metricId={metric.id as any}
@@ -345,7 +353,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             {!isHighQuality && (
                 <div className="fixed bottom-8 left-0 right-0 z-[60] flex justify-center px-6 pointer-events-none">
                     <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md">
-                        {score <= 60 && (
+                        {score <= 70 && (
                             <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
                                 <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
                                 <span>예약률을 높이려면 캠핏의 전문가 도움이 필요합니다</span>
@@ -353,7 +361,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         )}
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-4 px-10 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 60 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
+                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-4 px-10 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 70 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
                                 }`}
                         >
                             <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
@@ -364,10 +372,6 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="flex flex-col items-end mr-2">
-                                    <span className="text-[10px] leading-none font-bold uppercase tracking-widest opacity-40">Boost Revenue</span>
-                                    <span className="text-[12px] leading-none font-black text-emerald-900/60">예약률 극대화 🚀</span>
-                                </div>
                                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                             </div>
                         </button>
