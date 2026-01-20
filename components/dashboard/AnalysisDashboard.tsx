@@ -37,18 +37,56 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
         return text.replace(/input_file_(\d+)(\.png)?/gi, "$1번째 이미지");
     };
 
-    // Helper to render bold text from **markdown**
-    const renderBoldText = (text: string | null | undefined) => {
+    // Helper to render bold text from **markdown** and split into list items
+    const renderStructuredText = (text: string | null | undefined) => {
         if (!text) return "";
         const sanitized = sanitizeText(text);
         if (!sanitized) return "";
-        const parts = sanitized.split(/(\*\*.*?\*\*)/g);
-        return parts.map((part, i) => {
-            if (part && part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="font-extrabold text-gray-950 underline decoration-camfit-green/30 decoration-4 underline-offset-2">{part.slice(2, -2)}</strong>;
-            }
-            return part;
-        });
+
+        // Detect list items like 1), 2) or - 
+        const lines = sanitized.split(/\n/);
+
+        return (
+            <div className="space-y-4">
+                {lines.map((line, idx) => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return null;
+
+                    // Check if line starts with a number like 1) or 1.
+                    const isListItem = /^\d+[\)\.]/.test(trimmedLine);
+
+                    const content = trimmedLine.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+                        if (part && part.startsWith('**') && part.endsWith('**')) {
+                            return (
+                                <strong key={i} className="font-extrabold text-emerald-950 bg-emerald-100/50 px-1 rounded mx-0.5">
+                                    {part.slice(2, -2)}
+                                </strong>
+                            );
+                        }
+                        return part;
+                    });
+
+                    if (isListItem) {
+                        return (
+                            <div key={idx} className="flex gap-3 bg-white/60 p-4 rounded-xl border border-emerald-100/50 shadow-sm transition-all hover:translate-x-1">
+                                <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-black mt-0.5">
+                                    {trimmedLine.match(/^\d+/)?.[0]}
+                                </span>
+                                <p className="text-[15px] text-gray-800 leading-relaxed font-medium">
+                                    {trimmedLine.replace(/^\d+[\)\.]\s*/, "")}
+                                </p>
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <p key={idx} className="text-[17px] text-gray-900 leading-relaxed font-semibold tracking-tight px-1">
+                            {content}
+                        </p>
+                    );
+                })}
+            </div>
+        );
     };
 
     // Get Cloudinary URL for ranking images
@@ -123,13 +161,18 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 {isHighQuality ? "Camfit A-Grade 인증! 🏆" : "조금만 더 다듬으면 완벽해요! 💪"}
                             </h1>
 
-                            <div className="bg-emerald-50/40 rounded-2xl p-6 border border-emerald-100 shadow-sm">
-                                <div className="flex items-center gap-3 mb-4 text-emerald-900 font-bold text-lg">
-                                    <TrendingUp className="w-5 h-5" />
+                            <div className="bg-gradient-to-br from-emerald-50/80 to-teal-50/40 rounded-3xl p-7 border border-emerald-100/60 shadow-inner relative overflow-hidden backdrop-blur-sm">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Sparkles className="w-12 h-12 text-emerald-600" />
+                                </div>
+                                <div className="flex items-center gap-3 mb-5 text-emerald-900 font-bold text-xl">
+                                    <div className="p-2 bg-emerald-500 rounded-lg shadow-lg shadow-emerald-500/20">
+                                        <TrendingUp className="w-5 h-5 text-white" />
+                                    </div>
                                     <h3>에디터의 핵심 개선 전략</h3>
                                 </div>
-                                <div className="text-gray-900 leading-relaxed whitespace-pre-wrap text-[17px] font-medium tracking-tight h-auto">
-                                    {renderBoldText(data.marketing_comment)}
+                                <div className="text-gray-900 h-auto">
+                                    {renderStructuredText(data.marketing_comment)}
                                 </div>
                             </div>
                         </div>
@@ -141,14 +184,42 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                     <span className="text-sm font-bold text-gray-500">종합 점수</span>
                                     <span className="text-6xl font-black text-gray-950 tracking-tighter">{score}</span>
                                 </div>
-                                <div className="relative w-32 h-32">
+                                <div className="relative w-36 h-36">
                                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                                        <circle cx="50" cy="50" r="44" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                                        <circle cx="50" cy="50" r="44" fill="none" stroke="#f1f5f9" strokeWidth="8" />
                                         <circle cx="50" cy="50" r="44" fill="none" stroke="#01DF82" strokeWidth="10"
-                                            strokeDasharray={`${score * 2.76} 276`} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+                                            strokeDasharray={`${score * 2.76} 276`} strokeLinecap="round" className="transition-all duration-1000 ease-out shadow-lg" />
                                     </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center transform rotate-90">
+                                        <div className={`w-2 h-2 rounded-full absolute top-1.5 ${score > 60 ? 'bg-camfit-green' : 'bg-red-400'}`} />
+                                    </div>
                                 </div>
                             </div>
+
+                            {score <= 60 && (
+                                <div className="bg-emerald-950 text-white p-5 rounded-2xl shadow-xl border border-white/10 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:scale-110 transition-transform">
+                                        <Trophy className="w-10 h-10 text-[#01DF82]" />
+                                    </div>
+                                    <div className="relative z-10 space-y-2">
+                                        <h4 className="font-black text-[16px] text-[#01DF82] flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4" />
+                                            예약률을 2배 높이는 솔루션
+                                        </h4>
+                                        <p className="text-[13px] opacity-90 leading-relaxed font-medium">
+                                            현재 점수에서는 <strong>캠핏의 전문 컨설팅</strong>만 더해져도 <br />
+                                            검색 노출량과 예약 전환율이 크게 상승할 수 있습니다.
+                                        </p>
+                                        <button
+                                            onClick={() => setIsModalOpen(true)}
+                                            className="mt-2 w-full bg-[#01DF82] text-[#1A1A1A] py-2.5 rounded-xl font-black text-sm hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            무료 솔루션 신청하기
+                                            <ArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-2 gap-3">
                                 {metrics.map((m) => (
@@ -270,18 +341,49 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
             </div>
 
-            {/* Upsell Floating Button */}
+            {/* Upsell Floating Button with Low Score Emphasis */}
             {!isHighQuality && (
-                <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="pointer-events-auto bg-[#01DF82] text-white font-black py-4 px-10 rounded-full shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-105 transition-all duration-300 flex items-center gap-3 text-[19px] ring-4 ring-white"
-                    >
-                        <span>캠핏에서 해결해봐요!</span>
-                        <ArrowRight className="w-6 h-6" />
-                    </button>
+                <div className="fixed bottom-8 left-0 right-0 z-[60] flex justify-center px-6 pointer-events-none">
+                    <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md">
+                        {score <= 60 && (
+                            <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
+                                <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+                                <span>예약률을 높이려면 캠핏의 전문가 도움이 필요합니다</span>
+                            </div>
+                        )}
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-4 px-10 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 60 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
+                                }`}
+                        >
+                            <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
+                            <div className="flex items-center gap-3">
+                                <Sparkles className="w-6 h-6 text-camfit-dark" />
+                                <span className="text-[21px] tracking-tighter">
+                                    캠핏 전문가에게 진단받기
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-end mr-2">
+                                    <span className="text-[10px] leading-none font-bold uppercase tracking-widest opacity-40">Boost Revenue</span>
+                                    <span className="text-[12px] leading-none font-black text-emerald-900/60">예약률 극대화 🚀</span>
+                                </div>
+                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </button>
+                    </div>
                 </div>
             )}
+
+            <style jsx global>{`
+                @keyframes pulse-subtle {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.95; transform: scale(0.99); }
+                }
+                .animate-pulse-subtle {
+                    animation: pulse-subtle 3s infinite ease-in-out;
+                }
+            `}</style>
 
             <GrowthActionModal
                 isOpen={isModalOpen}
