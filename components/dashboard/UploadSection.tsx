@@ -44,6 +44,62 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         };
     }, [files]);
 
+    // Client-side image compression utility
+    const compressImage = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const MAX_WIDTH = 1600; // Lowered for better mobile performance
+                    const MAX_HEIGHT = 1600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const compressedFile = new File([blob], file.name, {
+                                    type: "image/jpeg",
+                                    lastModified: Date.now(),
+                                });
+                                // Cleanup reader result
+                                img.src = "";
+                                resolve(compressedFile);
+                            } else {
+                                reject(new Error("Canvas to Blob conversion failed"));
+                            }
+                        },
+                        "image/jpeg",
+                        0.7 // Lowered to 70% for faster uploads and lower memory
+                    );
+                };
+                img.onerror = () => reject(new Error("Image loading failed"));
+            };
+            reader.onerror = () => reject(new Error("FileReader failed"));
+        });
+    };
+
     const handleFileDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
@@ -52,20 +108,42 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
         }
     };
 
-    const addFiles = (newFiles: File[]) => {
+    const addFiles = async (newFiles: File[]) => {
         const validFiles = newFiles.filter(f => f.type.startsWith('image/'));
         if (files.length + validFiles.length > 10) {
             setErrorMsg("최고의 분석 결과를 위해 사진은 최대 10장까지만 선택 가능합니다.");
             return;
         }
 
-        // Add preview property safely
-        const filesWithPreviews = validFiles.map(file => Object.assign(file, {
-            preview: URL.createObjectURL(file)
-        }));
-
-        setFiles(prev => [...prev, ...filesWithPreviews]);
+        setIsLoading(true);
         setErrorMsg(null);
+
+        try {
+            const compressedResults: File[] = [];
+
+            // SEQUENTIAL PROCESSING: One photo at a time to save mobile memory
+            for (let i = 0; i < validFiles.length; i++) {
+                const file = validFiles[i];
+                setLoadingStage(`사진 최적화 중 (${i + 1}/${validFiles.length})`);
+
+                const compressed = await compressImage(file);
+                const fileWithPreview = Object.assign(compressed, {
+                    preview: URL.createObjectURL(compressed)
+                });
+                compressedResults.push(fileWithPreview);
+
+                // Hint to browser that we are done with original file if needed
+                // (Though File objects are just pointers, the Reader/Canvas bit is what hurts)
+            }
+
+            setFiles(prev => [...prev, ...compressedResults]);
+        } catch (err) {
+            console.error("Compression Error:", err);
+            setErrorMsg("사진 처리 중 오류가 발생했습니다.");
+        } finally {
+            setIsLoading(false);
+            setLoadingStage("");
+        }
     };
 
     const removeFile = (index: number) => {
