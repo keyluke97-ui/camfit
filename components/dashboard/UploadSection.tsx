@@ -54,8 +54,8 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement("canvas");
-                    const MAX_WIDTH = 1800; // Slightly higher for AI detail
-                    const MAX_HEIGHT = 1800;
+                    const MAX_WIDTH = 1600; // Balanced for speed
+                    const MAX_HEIGHT = 1600;
                     let width = img.width;
                     let height = img.height;
 
@@ -91,7 +91,7 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                             }
                         },
                         "image/jpeg",
-                        0.85 // 85% quality for better AI recognition
+                        0.7 // Reverted to 70% for maximum speed
                     );
                 };
                 img.onerror = () => reject(new Error("Image loading failed"));

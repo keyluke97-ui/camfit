@@ -361,18 +361,18 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         )}
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-4 px-10 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 70 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
+                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-3 px-8 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 70 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
                                 }`}
                         >
                             <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
-                            <div className="flex items-center gap-3 justify-center w-full">
-                                <Sparkles className="w-6 h-6 text-camfit-dark" />
-                                <span className="text-[21px] tracking-tighter">
+                            <div className="flex items-center gap-2.5 justify-center w-full">
+                                <Sparkles className="w-5 h-5 text-camfit-dark" />
+                                <span className="text-[18px] tracking-tighter">
                                     캠핏 전문가에게 진단받기
                                 </span>
                             </div>
-                            <div className="absolute right-8 flex items-center pointer-events-none">
-                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            <div className="absolute right-6 flex items-center pointer-events-none">
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </div>
                         </button>
                     </div>
