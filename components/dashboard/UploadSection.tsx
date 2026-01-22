@@ -322,6 +322,22 @@ export function UploadSection({ files, setFiles, onAnalysisComplete, onLoadingCh
                 </div>
                 <div className="space-y-4">
                     <label className="text-sm font-bold text-gray-700 block">사진 업로드 ({files.length}/10)<span className="text-gray-400 font-normal ml-2 text-xs">*중요한 사진 5~10장만 골라주세요</span></label>
+
+                    {/* Smart Hint Banner */}
+                    <div className="bg-blue-50/80 backdrop-blur-sm border border-blue-100 rounded-2xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className="p-2 bg-blue-500 rounded-lg shadow-lg shadow-blue-500/20 flex-shrink-0">
+                            <ImageIcon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-blue-900 flex items-center gap-1.5">
+                                💡 정밀 진단 가이드
+                            </h4>
+                            <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                                청결/위생 점수 분석을 위해 <span className="underline decoration-blue-300 decoration-2 underline-offset-2">화장실 또는 샤워실 이미지를 1장 이상</span> 반드시 포함해 주세요.
+                            </p>
+                        </div>
+                    </div>
+
                     <div className={cn("relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer min-h-[160px] flex flex-col items-center justify-center", isDragOver ? "border-camfit-green bg-camfit-green/10 scale-[1.02]" : "border-gray-300 hover:border-camfit-green hover:bg-gray-50", files.length > 0 ? "bg-white" : "")} onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragOver(true); }} onDragLeave={() => setIsDragOver(false)} onDrop={handleFileDrop} onClick={() => fileInputRef.current?.click()}>
                         <input ref={fileInputRef} type="file" className="hidden" accept="image/*" multiple onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files?.length && addFiles(Array.from(e.target.files))} />
                         {files.length === 0 ? (

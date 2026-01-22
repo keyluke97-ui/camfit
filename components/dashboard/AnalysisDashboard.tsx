@@ -282,17 +282,32 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
 
             {/* Metrics Breakdown Grid (Full Detail) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {metrics.map((metric) => (
-                    <MetricCard
-                        key={metric.id}
-                        label={metric.label}
-                        score={metric.score}
-                        comment={sanitizeText(metric.comment)}
-                        trend={metric.trend as "up" | "down" | "neutral"}
-                        description={metric.description}
-                        metricId={metric.id as any}
-                    />
-                ))}
+                {metrics.map((metric) => {
+                    // Logic for conditional badges
+                    const getSuggestion = (id: string, s: number) => {
+                        if (id === 'contents' && s < 70) {
+                            return { text: "✨ 매력 콘텐츠 보완 제안", type: 'amber' as const };
+                        }
+                        if (id === 'vibe') {
+                            if (s < 70) return { text: "📸 전문 포토 파트너 매칭", type: 'red' as const };
+                            if (s > 80) return { text: "🚀 캠핏 마케팅 신청 추천", type: 'green' as const };
+                        }
+                        return undefined;
+                    };
+
+                    return (
+                        <MetricCard
+                            key={metric.id}
+                            label={metric.label}
+                            score={metric.score}
+                            comment={sanitizeText(metric.comment)}
+                            trend={metric.trend as "up" | "down" | "neutral"}
+                            description={metric.description}
+                            metricId={metric.id as any}
+                            suggestion={getSuggestion(metric.id, metric.score)}
+                        />
+                    );
+                })}
             </div>
 
             <div className="my-6 border-b border-gray-100" />
