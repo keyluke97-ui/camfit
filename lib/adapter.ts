@@ -43,7 +43,7 @@ export function normalizeV2Data(report: AnalysisReport) {
                 score: evaluation.contents_score || 0,
                 comment: evaluation.contents || "평가내용 없음",
                 trend: getTrend(evaluation.contents) as "up" | "down" | "neutral",
-                description: "부대시설과 편의 시설의 상품 가치를 표현합니다."
+                description: "숙소의 매력적이고, 다양한 콘텐츠가 있는지 판단합니다."
             },
             {
                 id: "season",

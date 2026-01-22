@@ -30,6 +30,27 @@ export async function POST(request: Request) {
 
         const images = imageUrls as string[];
 
+        // [1] 날짜 및 계절 계산 로직
+        const today = new Date();
+        const month = today.getMonth() + 1;
+
+        let currentSeason = '';
+        let seasonExpectation = '';
+
+        if (month === 12 || month <= 3) {
+            currentSeason = '겨울 (Winter)';
+            seasonExpectation = '설경(눈), 장박 텐트의 아늑함, 난로, 온천 느낌, 따뜻한 조명';
+        } else if (month >= 4 && month <= 5) {
+            currentSeason = '봄 (Spring)';
+            seasonExpectation = '벚꽃, 개화하는 꽃들, 파릇파릇한 잔디, 화사하고 따뜻한 분위기';
+        } else if (month >= 6 && month <= 9) {
+            currentSeason = '여름 (Summer)';
+            seasonExpectation = '계곡, 물놀이, 시원한 그늘, 타프, 청량한 숲이나 바다 배경';
+        } else {
+            currentSeason = '가을 (Autumn)';
+            seasonExpectation = '단풍, 낙엽, 감성적인 갈대';
+        }
+
         // 1. Fetch Images and Prepare Payload
         console.log(`Processing ${images.length} images for Gemini Analysis...`);
 
@@ -37,13 +58,53 @@ export async function POST(request: Request) {
 
         // START WITH PROMPT (Instruction-First for Flash models)
         const prompt = `
-당신은 캠핑장 전문 컨설턴트이자 포토 에디터입니다. 
-당신의 임무는 제공된 사진들이 캠핑장의 매력을 충분히 전달하고 있는지 '객관적으로 평가하되, 사장님의 노력을 공감하는 따뜻한 어조'로 분석하는 것입니다.
+당신은 캠핏의 1000개가 넘는 캠핑장의 사진을 분석한 전문 컨설턴트이자, 포토 에디터입니다.
+당신은 한국의 캠핑 트렌드를 잘 아는 '전문 캠핑 큐레이터'입니다. 제공된 **1~10장의 이미지 세트**를 종합적으로 분석하여 평가해주세요.
 
-[지침]
-- 가점: 매직아워(暖色), 광각 렌즈, 건식 화장실, 고유 콘텐츠.
-- 감점: 원색 노이즈(빨강/파랑 천막), 생활 쓰레기, 물기, 계절 불일치, 저조도.
-- 어조: 평가는 냉정하고 객관적으로 하되, 사장님께 드리는 제언은 따뜻하고 격려하는 어조를 사용하세요.
+[분석 환경 정보]
+- 오늘 날짜: ${today.toISOString().split('T')[0]}
+- 현재 계절: ${currentSeason} ("${seasonExpectation}" 키워드 중점 확인)
+
+[⭐⭐ 다중 이미지 종합 평가 규칙 (매우 중요)]
+여러 장의 사진을 하나의 결과로 합친 때 다음 규칙을 엄격히 따르세요:
+
+1. **Hygiene (청결) -> "보수적 평가 (Worst Case)"**
+   - 9장이 깨끗해도 **단 1장이 비위생적(넘치는 쓰레기, 더러운 개수대 등)이라면** 그 사진을 기준으로 점수를 대폭 깎으세요.
+
+2. **Vibe (감성) -> "선별적 종합 평가 (Selective Overall)"** 
+   - 단순 정보 전달용 사진(예: 배치도 그림, 메뉴판, 소화기 사용법 등)은 감성 평가 대상에서 **제외**하세요.
+   - 풍경, 텐트, 인테리어를 담은 사진들의 **전반적인 평균 수준**을 평가하세요.
+   - 단, 사진 간의 퀄리티 격차가 너무 심하면(예: 1장만 전문가급, 나머지는 흔들림) '일관성 부족'으로 점수를 낮추세요.
+
+3. **Contents (콘텐츠) -> "합산 평가 (Accumulation)"**
+   - **모든 사진을 통틀어** 식별 가능한 놀이 시설, 편의 서비스, 특수 사이트의 '개수'를 세어 평가하세요. (중복 제외)
+
+---
+
+[채점 가이드라인 (Scoring Anchors)]
+**최저 30점 / 기준(중간) 60점 / 만점 100점**
+
+1. Vibe
+- Target 100: "인스타 업로드 필수." 베스트 컷의 조명과 구도가 완벽함.
+- Target 60: "현실적 기록." 정보 전달 위주의 선명한 사진들.
+- Target 30: 전체적으로 어둡거나 흔들려 식별 불가.
+
+2. Hygiene - *가장 지저분한 사진 기준*
+- Target 100: 모든 사진에서 칼각 텐트와 완벽한 정돈 상태 확인.
+- Target 60: 생활감이 느껴지는 짐들이 보이나 위생적임.
+- Target 30: 쓰레기, 곰팡이, 정돈 안 된 짐들이 한 장이라도 명확히 보임.
+
+3. Contents 
+*이미지 내에서 '시설물(트램펄린, 수영장 등)', '안내판(서비스 정책)' 등을 찾아내세요.*
+- Target 100 : **4가지 이상의 확실한 차별화 요소**가 식별됨.
+  (예: 트램펄린, 목장체험, 매점(특색있는), 게임기, 마술쇼 현수막, 글램핑/이지캠핑 시설, 안심취소/빠른입실 안내문 등)
+- Target 60 : **1가지 이상 3가지 이하**의 즐길거리나 편의 시설이 보임.
+- Target 30 : 캠핑장/숙소에 데크,파쇄석 사이트 ,화장실, 샤워실 등 기본적인 시설 외에 특별한 부대시설이나 서비스 안내가 전혀 안 보임.
+
+4. Seasonality (계절감)
+- Target 100: 사진 세트 전체에서 현재 계절(${currentSeason})의 특징이 잘 드러남.
+- Target 60: 계절을 타지 않는 실내/근접 사진 위주.
+- Target 30: 현재 계절과 맞지 않는 복장이나 배경이 포함됨.
 
 ### CRITICAL CONSTRAINTS:
 1. 제공된 사진이 총 ${images.length}장이므로, 모든 파일명은 반드시 input_file_1부터 input_file_${images.length} 사이에서만 선택해야 합니다.
