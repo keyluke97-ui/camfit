@@ -16,7 +16,7 @@ export default function Home() {
             <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-camfit-green/5 via-white/50 to-transparent pointer-events-none -z-10" />
             <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-emerald-200/20 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="z-10 w-full max-w-7xl space-y-12">
+            <div className="z-10 w-full max-w-7xl space-y-12 main-container mx-auto">
                 <header className="text-center space-y-6 mb-16 animate-in slide-in-from-top duration-700">
                     <h2 className="text-camfit-green font-bold tracking-wide text-sm">캠핏 숙소 진단</h2>
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-camfit-dark">

@@ -16,6 +16,19 @@ body {
   color: var(--camfit-dark);
 }
 
+/* Typography Optimization */
+h1, h2, h3, h4, h5, h6, p, span, div {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* PC Layout Optimization */
+.main-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-horizontal: auto;
+}
+
 /* Glassmorphism Utilities */
 .glass-effect {
   background: rgba(255, 255, 255, 0.7);
