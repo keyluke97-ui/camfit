@@ -126,6 +126,10 @@ export async function getAnalysisResult(recordId: string): Promise<AnalysisRepor
             one_line_intro: f["추천 한 줄 소개"] as string,
             description: f["추천 소개글 가이드"] as string,
 
+            // Reconstruct minimal ranking for UI to not break, though reasons aren't saved yet
+            ranking: [],
+            upsell_needed: (f["종합 점수"] as number) <= 77,
+
             // Reconstruct Best Photos logic if needed, or just use uploadedUrls from attachments
             // Creating a flat array from attachments for display
             uploadedUrls: (f["사진 업로드 (0/20)"] as any[])?.map((a: any) => a.url) || [],

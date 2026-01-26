@@ -25,9 +25,9 @@ export interface AnalysisEvaluation {
 export interface AnalysisReport {
     total_score: number;
     evaluation: AnalysisEvaluation;
-    ranking: PhotoRanking[];
+    ranking?: PhotoRanking[];
     marketing_comment: string;
-    upsell_needed: boolean;
+    upsell_needed?: boolean;
     description: string;
     one_line_intro?: string;
     address?: string; // New V2 context
