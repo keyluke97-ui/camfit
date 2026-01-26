@@ -9,7 +9,6 @@ import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, Ar
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 import { GrowthActionModal } from "@/components/dashboard/GrowthActionModal";
-import { cn } from "@/lib/utils";
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -20,55 +19,7 @@ interface AnalysisDashboardProps {
 export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashboardProps) {
     const [expandedRankings, setExpandedRankings] = useState<number[]>([]);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const [isStrategyExpanded, setIsStrategyExpanded] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSharing, setIsSharing] = useState(false);
-
-    // Dynamic sharing logic
-    const handleShare = async () => {
-        if (isSharing) return;
-        setIsSharing(true);
-        try {
-            // Lazy load html2canvas to avoid build issues if not installed
-            const html2canvas = (await import('html2canvas')).default;
-            const element = document.getElementById('sharing-card');
-            if (!element) throw new Error("Sharing card not found");
-
-            const canvas = await html2canvas(element, {
-                useCORS: true,
-                scale: 2, // Better quality
-                backgroundColor: "#F8F9FA"
-            });
-
-            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-            if (!blob) throw new Error("Canvas to blob failed");
-
-            // Upload to Cloudinary (using existing adapter or similar logic)
-            const formData = new FormData();
-            formData.append('file', blob);
-            formData.append('upload_preset', 'camfit_photo');
-
-            const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            if (result.secure_url) {
-                await navigator.clipboard.writeText(result.secure_url);
-                alert("분석 결과 이미지가 복사되었습니다! 이 링크를 지인이나 가족들에게 공유해 주세요.");
-            } else {
-                throw new Error("Cloudinary upload failed");
-            }
-        } catch (err) {
-            console.error("Sharing failed:", err);
-            // Fallback to URL copy
-            await navigator.clipboard.writeText(window.location.href);
-            alert("이미지 생성에 실패하여 결과 페이지 링크를 복사했습니다. (html2canvas 라이브러리 설치가 필요할 수 있습니다)");
-        } finally {
-            setIsSharing(false);
-        }
-    };
 
     const toggleRanking = (idx: number) => {
         setExpandedRankings((prev: number[]) =>
@@ -193,42 +144,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700 pb-32 relative">
-            {/* Hidden Snapshot Card for Sharing */}
-            <div id="sharing-card" className="fixed -left-[10000px] top-0 w-[400px] bg-[#F8F9FA] p-8 space-y-6 z-[-1]">
-                <div className="flex items-center gap-2 text-camfit-green font-bold">
-                    <Sparkles className="w-5 h-5" />
-                    <span>캠핏 AI 성장 리포트</span>
-                </div>
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-                    <div>
-                        <div className="text-gray-500 text-xs font-bold mb-1">나의 캠핑장 AI 종합 점수</div>
-                        <div className="text-6xl font-black text-gray-950">{score}점</div>
-                    </div>
-                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center">
-                        <Trophy className="w-10 h-10 text-camfit-green" />
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                    {metrics.map(m => (
-                        <div key={m.id} className="bg-white p-4 rounded-2xl border border-gray-100">
-                            <div className="text-[12px] font-bold text-gray-500 mb-1">{m.label}</div>
-                            <div className="text-2xl font-black text-gray-900">{m.score}</div>
-                        </div>
-                    ))}
-                </div>
-                <div className="bg-emerald-950 text-white rounded-2xl p-5">
-                    <div className="text-[10px] text-[#01DF82] font-bold mb-2 flex items-center gap-1">
-                        <Quote className="w-3 h-3 fill-[#01DF82]" /> AI 한줄평
-                    </div>
-                    <div className="text-sm font-medium leading-relaxed">
-                        "{data.one_line_intro}"
-                    </div>
-                </div>
-                <div className="text-center text-[10px] text-gray-400 font-medium">
-                    본 리포트는 캠핏 성장 엔진을 통해 생성되었습니다.
-                </div>
-            </div>
+        <div className="space-y-6 animate-in fade-in duration-700 pb-32">
             {/* Header Section - 2 Column for PC */}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-gray-100 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-camfit-green/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -241,13 +157,18 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                         </div>
                         <button
                             onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
+                                const recordId = (data as any).recordId || (data as any).airtable_record_id;
+                                const shareUrl = recordId
+                                    ? `${window.location.origin}/share/${recordId}`
+                                    : window.location.href;
+                                navigator.clipboard.writeText(shareUrl);
                                 alert("분석 결과 링크가 복사되었습니다. 이 링크는 사장님의 성장을 돕는 제안들이 포함되어 있으니, 꼭 지인이나 가족들에게만 공유해 주세요!");
                             }}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 hover:bg-emerald-100 transition-colors text-[13px] font-bold shadow-sm"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-transparent hover:shadow-lg transition-all text-[13px] font-bold shadow-sm"
+                            style={{ background: 'linear-gradient(90deg, #00C7AE 0%, #009F8C 100%)', color: 'white' }}
                         >
                             <Copy className="w-3.5 h-3.5" />
-                            결과 링크 복사하기
+                            결과 공유하기
                         </button>
                     </div>
 
@@ -275,27 +196,9 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                     </div>
                                     <h3>에디터의 핵심 개선 전략</h3>
                                 </div>
-                                <div className={`text-gray-900 overflow-hidden transition-all duration-300 ${isStrategyExpanded ? "h-auto" : "max-h-[160px]"}`}>
+                                <div className="text-gray-900 h-auto">
                                     {renderStructuredText(data.marketing_comment)}
                                 </div>
-                                {!isStrategyExpanded && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-emerald-50 to-transparent flex items-end justify-center pb-4 lg:hidden">
-                                        <button
-                                            onClick={() => setIsStrategyExpanded(true)}
-                                            className="px-4 py-1.5 bg-white border border-emerald-200 rounded-full text-xs font-bold text-emerald-700 shadow-sm flex items-center gap-1 hover:bg-emerald-50 transition-colors"
-                                        >
-                                            전략 더 읽기 <ArrowRight className="w-3 h-3 rotate-90" />
-                                        </button>
-                                    </div>
-                                )}
-                                {isStrategyExpanded && (
-                                    <button
-                                        onClick={() => setIsStrategyExpanded(false)}
-                                        className="mt-4 px-4 py-1.5 bg-white/50 border border-emerald-100 rounded-full text-xs font-bold text-emerald-600 hover:bg-white transition-colors lg:hidden"
-                                    >
-                                        접기
-                                    </button>
-                                )}
                             </div>
                         </div>
 
@@ -410,33 +313,16 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                     };
 
                     return (
-                        <div key={metric.id}>
-                            {/* Mobile: Compact / Desktop: Full */}
-                            <div className="md:hidden">
-                                <MetricCard
-                                    label={metric.label}
-                                    score={metric.score}
-                                    comment={sanitizeText(metric.comment)}
-                                    trend={metric.trend as "up" | "down" | "neutral"}
-                                    description={metric.description}
-                                    metricId={metric.id as any}
-                                    suggestion={getSuggestion(metric.id, metric.score)}
-                                    isCompact={true}
-                                />
-                            </div>
-                            <div className="hidden md:block">
-                                <MetricCard
-                                    label={metric.label}
-                                    score={metric.score}
-                                    comment={sanitizeText(metric.comment)}
-                                    trend={metric.trend as "up" | "down" | "neutral"}
-                                    description={metric.description}
-                                    metricId={metric.id as any}
-                                    suggestion={getSuggestion(metric.id, metric.score)}
-                                    isCompact={false}
-                                />
-                            </div>
-                        </div>
+                        <MetricCard
+                            key={metric.id}
+                            label={metric.label}
+                            score={metric.score}
+                            comment={sanitizeText(metric.comment)}
+                            trend={metric.trend as "up" | "down" | "neutral"}
+                            description={metric.description}
+                            metricId={metric.id as any}
+                            suggestion={getSuggestion(metric.id, metric.score)}
+                        />
                     );
                 })}
             </div>
@@ -444,99 +330,87 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             <div className="my-6 border-b border-gray-100" />
 
             {/* Photo Ranking Section */}
-            <div className="flex items-center gap-3">
-                <Trophy className="w-6 h-6 text-yellow-500" />
-                <h3 className="text-xl font-bold text-gray-900">베스트 포토 TOP 3</h3>
-            </div>
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <Trophy className="w-6 h-6 text-yellow-500" />
+                    <h3 className="text-xl font-bold text-gray-900">베스트 포토 TOP 3</h3>
+                </div>
 
-            {/* Desktop: Grid / Mobile: Carousel */}
-            <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory touch-pan-x -mx-6 px-6 md:mx-0 md:px-0">
-                {(data?.ranking || []).map((item, idx) => {
-                    const imageUrl = getFileUrl(item.filename);
+                {/* Mobile: Horizontal Scroll, Desktop: Grid */}
+                <div className="md:grid md:grid-cols-3 md:gap-6 flex md:flex-none overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-4 pb-4 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0">
+                    {(data?.ranking || []).map((item, idx) => {
+                        const imageUrl = getFileUrl(item.filename);
 
-                    return (
-                        <div key={idx} className="min-w-[280px] md:min-w-0 flex-shrink-0 snap-center md:snap-align-none bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-white/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
-                            {/* Glass Rank Badge */}
-                            <div className="absolute top-3 left-3 bg-[#01DF82] text-white text-xs font-black px-3 py-1.5 rounded-full z-20 shadow-lg shadow-green-500/30">
-                                RANK {item.rank}
-                            </div>
-
-                            <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative shadow-inner">
-                                {imageUrl ? (
-                                    <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
-                                ) : (
-                                    <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
-                                        <BarChart3 className="w-10 h-10 mb-2 opacity-30" />
-                                        <span className="text-[10px] text-center font-medium">
-                                            {item.filename?.match(/input_file_(\d+)/i)
-                                                ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
-                                                : (item.filename || "매칭 실패")}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="absolute bottom-2 right-2">
-                                    <Badge variant="neutral" className="bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-0.5 shadow-sm text-gray-700">
-                                        {item.category}
-                                    </Badge>
+                        return (
+                            <div key={idx} className="bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-white/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group min-w-[280px] md:min-w-0 snap-center">
+                                {/* Glass Rank Badge */}
+                                <div className="absolute top-3 left-3 bg-[#01DF82] text-white text-xs font-black px-3 py-1.5 rounded-full z-20 shadow-lg shadow-green-500/30">
+                                    RANK {item.rank}
                                 </div>
-                            </div>
 
-                            <p
-                                onClick={() => toggleRanking(idx)}
-                                className={`text-[15px] font-bold text-gray-900 leading-snug mb-1 cursor-pointer hover:text-camfit-green transition-colors ${expandedRankings.includes(idx) ? "" : "line-clamp-2"
-                                    }`}
-                                title="전체 보기"
-                            >
-                                "{item.reason}"
-                            </p>
-                        </div>
-                    );
-                })}
+                                <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative shadow-inner">
+                                    {imageUrl ? (
+                                        <img src={imageUrl} alt={item.filename} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+                                    ) : (
+                                        <div className="bg-gray-50 w-full h-full flex flex-col items-center justify-center text-gray-300 p-4">
+                                            <BarChart3 className="w-10 h-10 mb-2 opacity-30" />
+                                            <span className="text-[10px] text-center font-medium">
+                                                {item.filename?.match(/input_file_(\d+)/i)
+                                                    ? `${item.filename.match(/input_file_(\d+)/i)![1]}번째 이미지`
+                                                    : (item.filename || "매칭 실패")}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="absolute bottom-2 right-2">
+                                        <Badge variant="neutral" className="bg-white/90 backdrop-blur text-[10px] font-bold px-2 py-0.5 shadow-sm text-gray-700">
+                                            {item.category}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <p
+                                    onClick={() => toggleRanking(idx)}
+                                    className={`text-[15px] font-bold text-gray-900 leading-snug mb-1 cursor-pointer hover:text-camfit-green transition-colors ${expandedRankings.includes(idx) ? "" : "line-clamp-2"
+                                        }`}
+                                    title="전체 보기"
+                                >
+                                    "{item.reason}"
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* Sticky Share Button and Expert CTA */}
-            <div className="fixed bottom-0 left-0 right-0 z-[60] p-6 pointer-events-none">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-4 pointer-events-none">
-                    {/* Primary Button: Expert Consultation */}
-                    <div className="pointer-events-auto w-full md:w-auto max-w-md md:order-2">
-                        {!isHighQuality && (
-                            <div className="flex flex-col items-center gap-2">
-                                {score <= 77 && (
-                                    <div className="bg-black/90 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-xl animate-bounce flex items-center gap-1 border border-white/20">
-                                        <AlertTriangle className="w-3 h-3 text-yellow-400" />
-                                        <span>예약률 상승 솔루션을 신청해보세요</span>
-                                    </div>
-                                )}
-                                <button
-                                    onClick={() => setIsModalOpen(true)}
-                                    className={`w-full md:min-w-[280px] bg-[#01DF82] text-[#1A1A1A] font-black py-4 px-8 rounded-2xl shadow-2xl shadow-green-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between group relative overflow-hidden ${score <= 77 ? 'animate-pulse-subtle ring-2 ring-emerald-500 ring-offset-2 bg-white' : ''}`}
-                                >
-                                    <div className="flex items-center gap-2.5 justify-center w-full">
-                                        <Sparkles className="w-5 h-5 text-camfit-dark" />
-                                        <span className="text-[17px] tracking-tighter">전문가 진단받기</span>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-all" />
-                                </button>
+            {/* Upsell Floating Button with Low Score Emphasis */}
+            {!isHighQuality && (
+                <div className="fixed bottom-8 left-0 right-0 z-[60] flex justify-center px-6 pointer-events-none">
+                    <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md">
+                        {score <= 77 && (
+                            <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
+                                <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+                                <span>캠핏의 서비스를 신청해보세요.</span>
                             </div>
                         )}
-                    </div>
-
-                    {/* Secondary Button: Share Result (New V15 Snap-style logic placeholder) */}
-                    <div className="pointer-events-auto w-full md:w-auto max-w-md md:order-1">
                         <button
-                            onClick={handleShare}
-                            disabled={isSharing}
-                            className={cn(
-                                "w-full md:min-w-[200px] bg-gradient-to-r from-[#00C7AE] to-[#009F8C] text-white font-black py-4 px-8 rounded-2xl shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all",
-                                isSharing && "opacity-70 cursor-not-allowed"
-                            )}
+                            onClick={() => setIsModalOpen(true)}
+                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-3 md:py-3 px-6 md:px-8 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 77 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
+                                }`}
                         >
-                            <span className="text-lg">{isSharing ? "⌛" : "📤"}</span>
-                            <span className="text-[17px]">{isSharing ? "이미지 생성 중..." : "결과 공유하기"}</span>
+                            <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
+                            <div className="flex items-center gap-2.5 justify-center w-full">
+                                <Sparkles className="w-5 h-5 text-camfit-dark" />
+                                <span className="text-[15px] md:text-[18px] tracking-tighter">
+                                    캠핏 전문가에게 진단받기
+                                </span>
+                            </div>
+                            <div className="absolute right-6 flex items-center pointer-events-none">
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </div>
                         </button>
                     </div>
                 </div>
-            </div>
+            )}
 
             <style jsx global>{`
                 @keyframes pulse-subtle {

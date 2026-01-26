@@ -41,5 +41,7 @@ export interface AnalysisReport {
     photoCount?: number;
     uploadedUrls?: string[]; // All Vercel Blob URLs
     airtable_record_id?: string;
+    // For internal tracking of the ID itself when fetched back
+    recordId?: string;
     airtable_sync_failed?: boolean;
 }

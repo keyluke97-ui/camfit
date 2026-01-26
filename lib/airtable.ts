@@ -82,3 +82,59 @@ export async function saveAnalysisResult(data: AnalysisReport) {
         return { success: false, error: `${errorMsg} (V7-SDK)` };
     }
 }
+// Fetch analysis result by Record ID for persistent sharing
+export async function getAnalysisResult(recordId: string): Promise<AnalysisReport | null> {
+    const result = getBase();
+    if ('error' in result) {
+        console.error("Airtable Init Error:", result.error);
+        return null;
+    }
+    const base = result.base;
+
+    try {
+        let tableName = (process.env.AIRTABLE_TABLE_NAME || '사진 진단 캠핑장 DB').trim();
+        const table = base(tableName);
+        const record = await table.find(recordId);
+
+        if (!record) return null;
+
+        const f = record.fields;
+
+        // Map Airtable fields back to AnalysisReport
+        return {
+            campingName: f["캠핑장 이름"] as string,
+            address: f["캠핑장 주소"] as string,
+            tags: {
+                leisure: (f["주변레저"] as string[]) || [],
+                facility: (f["시설"] as string[]) || [],
+                activity: (f["체험활동"] as string[]) || []
+            },
+            total_score: f["종합 점수"] as number,
+            evaluation: {
+                vibe_score: f["비주얼 경쟁력"] as number,
+                hygiene_score: f["청결 안심 지수"] as number,
+                contents_score: f["콘텐츠 매력도"] as number,
+                season_score: f["계절감"] as number,
+                // We might need to store text comments if we want them back. 
+                // Currently only scores are stored individually, but marketing_comment has the text.
+                vibe: "", // Not stored individually in V1? 
+                hygiene: "",
+                contents: "",
+                season: ""
+            },
+            marketing_comment: f["에디터 핵심 전략"] as string,
+            one_line_intro: f["추천 한 줄 소개"] as string,
+            description: f["추천 소개글 가이드"] as string,
+
+            // Reconstruct Best Photos logic if needed, or just use uploadedUrls from attachments
+            // Creating a flat array from attachments for display
+            uploadedUrls: (f["사진 업로드 (0/20)"] as any[])?.map((a: any) => a.url) || [],
+
+            // Add recordId for future updates
+            recordId: record.getId()
+        };
+    } catch (error) {
+        console.error("Airtable Fetch Error:", error);
+        return null;
+    }
+}
