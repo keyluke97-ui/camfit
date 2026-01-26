@@ -46,7 +46,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
             // Upload to Cloudinary (using existing adapter or similar logic)
             const formData = new FormData();
             formData.append('file', blob);
-            formData.append('upload_preset', 'ml_default'); // Assuming default or configurable
+            formData.append('upload_preset', 'camfit_photo');
 
             const response = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
                 method: 'POST',
@@ -556,6 +556,6 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 contentsScore={data?.evaluation?.contents_score}
                 totalScore={data?.total_score}
             />
-        </div >
+        </div>
     );
 }
