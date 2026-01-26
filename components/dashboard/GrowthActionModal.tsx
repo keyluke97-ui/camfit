@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { X, Camera, Sparkles, Star, TrendingDown, CheckCircle2, ArrowRight, Zap, Award, Loader2 } from "lucide-react";
 
 interface GrowthActionModalProps {
@@ -9,6 +8,7 @@ interface GrowthActionModalProps {
     onClose: () => void;
     recordId?: string;
     vibeScore?: number;
+    contentsScore?: number;
     totalScore?: number;
 }
 
@@ -101,7 +101,7 @@ const SERVICES: Record<string, ServiceDetail> = {
     }
 };
 
-export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, totalScore = 0 }: GrowthActionModalProps) {
+export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, contentsScore = 0, totalScore = 0 }: GrowthActionModalProps) {
     const [selectedService, setSelectedService] = useState<string | null>(null);
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
@@ -120,7 +120,6 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
         setLoadingAction(service.id);
 
         try {
-            // Airtable PATCH - Only if field is defined
             if (service.field) {
                 const response = await fetch('/api/airtable/update', {
                     method: 'PATCH',
@@ -137,12 +136,10 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                 }
             }
 
-            // Show success message only if it was a sync action
             if (service.field) {
                 alert(`${service.title} 신청이 완료되었습니다! 담당자가 확인 후 연락드립니다.`);
             }
 
-            // External link if exists
             if (service.externalLink) {
                 window.open(service.externalLink, '_blank');
             }
@@ -150,8 +147,6 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
             setSelectedService(null);
         } catch (error: any) {
             console.error("Action Sync Error:", error);
-
-            // If sync fails but there's an external link, we should still let the user go there
             if (service.externalLink) {
                 alert("데이터 동기화에 지연이 발생했으나, 신청 페이지로 이동합니다.");
                 window.open(service.externalLink, '_blank');
@@ -164,31 +159,63 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
         }
     };
 
-    // AI Recommendation Logic
+    // AI Recommendation Logic V13
     const getRecommendationBadge = (serviceId: string) => {
-        if (serviceId === 'photographer' && vibeScore <= 50) {
-            return <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-black px-2 py-1 rounded-full flex items-center gap-1 animate-pulse"><Zap className="w-3 h-3" />AI 추천: 사진 교체 시급! 🔥</span>;
+        // [1] Always Recommended
+        if (serviceId === 'coupon') {
+            return (
+                <div className="absolute -top-2 left-4 bg-orange-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg z-20 animate-bounce">
+                    <Zap className="w-3 h-3 fill-white" />
+                    강력 추천 🔥
+                </div>
+            );
         }
-        if (serviceId === 'influencer' && vibeScore >= 70) {
-            return <span className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-black px-2 py-1 rounded-full flex items-center gap-1"><Award className="w-3 h-3" />성공 확률 높음! ⭐</span>;
+
+        // [2] Contents Sensitive (< 70)
+        if (contentsScore < 70 && (serviceId === 'easy_camping' || serviceId === 'safe_cancel')) {
+            return (
+                <div className="absolute -top-2 left-4 bg-amber-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg z-20">
+                    <Sparkles className="w-3 h-3 fill-white" />
+                    ✨ 매력 콘텐츠 보완 제안
+                </div>
+            );
         }
+
+        // [3] Visual Sensitive (< 70)
+        if (serviceId === 'photographer' && vibeScore < 70) {
+            return (
+                <div className="absolute -top-2 left-4 bg-red-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg z-20">
+                    <Camera className="w-3 h-3 fill-white" />
+                    📸 전문 포토 파트너 매칭
+                </div>
+            );
+        }
+
+        // [4] Visual Positive (> 80)
+        if (serviceId === 'influencer' && vibeScore > 80) {
+            return (
+                <div className="absolute -top-2 left-4 bg-camfit-green text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg z-20">
+                    <Award className="w-3 h-3 fill-white" />
+                    🚀 캠핏 마케팅 신청 추천
+                </div>
+            );
+        }
+
         return null;
     };
 
-    const shouldShowCoupon = totalScore >= 70;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
 
-            <GlassCard className="w-full max-w-3xl relative z-60 animate-in zoom-in-95 duration-200 p-0 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="w-full max-w-3xl relative z-[110] animate-in zoom-in-95 duration-200 bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-camfit-green to-emerald-600 p-6 flex items-center justify-between text-white flex-shrink-0">
+                <div className="bg-gradient-to-r from-camfit-green to-emerald-600 p-5 sm:p-6 flex items-center justify-between text-white flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <Sparkles className="w-6 h-6 animate-pulse" />
                         <div>
-                            <h2 className="text-xl font-bold tracking-tight">캠핏에서 해결해봐요!</h2>
-                            <p className="text-white/90 text-sm font-medium">서비스를 선택하면 상세 설명을 확인할 수 있어요</p>
+                            <h2 className="text-lg sm:text-xl font-bold tracking-tight leading-none mb-1">캠핏에서 해결해봐요!</h2>
+                            <p className="text-white/80 text-[11px] sm:text-sm font-medium">서비스를 선택하여 상세 내용을 확인하세요</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition-colors">
@@ -197,9 +224,8 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                 </div>
 
                 {/* Body */}
-                <div className="p-6 bg-white space-y-8 overflow-y-auto flex-1">
+                <div className="p-4 sm:p-6 space-y-8 overflow-y-auto flex-1 touch-pan-y">
 
-                    {/* Category Helper Component for Inline Expansion */}
                     {Object.entries({
                         '사진 퀄리티 개선': { icon: <Camera className="w-5 h-5 text-blue-600" />, ids: ['photographer', 'influencer', 'photo_contest'] },
                         '우리 캠핑장만의 경쟁력': { icon: <Star className="w-5 h-5 text-yellow-600" />, ids: ['safe_cancel', 'easy_camping'] },
@@ -208,44 +234,43 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                         const isAnyInThisCategorySelected = category.ids.includes(selectedService || "");
 
                         return (
-                            <div key={categoryName} className="space-y-4">
-                                <div className="flex items-center gap-2">
+                            <div key={categoryName} className="space-y-5">
+                                <div className="flex items-center gap-2 px-1">
                                     {category.icon}
-                                    <h3 className="text-lg font-bold text-gray-900">{categoryName}</h3>
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-900">{categoryName}</h3>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-4">
                                     {category.ids.map(serviceId => {
                                         const originalService = SERVICES[serviceId];
-                                        // Dynamic text for coupon
                                         const service = serviceId === 'coupon' ? {
                                             ...originalService,
                                             description: totalScore >= 70
                                                 ? "사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요."
-                                                : "사장님 캠핑장은 할인쿠폰을 통해 할인 혜택을 제공하여 고객을 모아보세요."
+                                                : "할인쿠폰을 제공하여 주춤한 예약률을 즉시 끌어올려보세요."
                                         } : originalService;
 
                                         const isSelected = selectedService === serviceId;
                                         return (
-                                            <button
-                                                key={serviceId}
-                                                onClick={() => handleServiceClick(serviceId)}
-                                                className={`relative w-full border-2 rounded-xl p-5 text-left transition-all ${isSelected
-                                                    ? 'border-camfit-green bg-camfit-green/5 shadow-md scale-[0.99]'
-                                                    : 'border-gray-200 hover:border-camfit-green/50 hover:shadow-sm'
-                                                    }`}
-                                            >
+                                            <div key={serviceId} className="relative pt-2">
                                                 {getRecommendationBadge(serviceId)}
-                                                <div className="font-bold text-gray-900 text-base mb-1.5">{service.title}</div>
-                                                <div className="text-xs text-gray-500 leading-relaxed pr-24">{service.description}</div>
-                                                {isSelected && <CheckCircle2 className="w-6 h-6 text-camfit-green absolute bottom-5 right-5" />}
-                                            </button>
+                                                <button
+                                                    onClick={() => handleServiceClick(serviceId)}
+                                                    className={`w-full border-2 rounded-2xl p-4 sm:p-5 text-left transition-all active:scale-[0.98] ${isSelected
+                                                        ? 'border-camfit-green bg-camfit-green/5 shadow-inner'
+                                                        : 'border-gray-100 hover:border-camfit-green/30 bg-gray-50/50'
+                                                        }`}
+                                                >
+                                                    <div className="font-bold text-gray-950 text-[15px] sm:text-base mb-1">{service.title}</div>
+                                                    <div className="text-[11px] sm:text-xs text-gray-500 leading-normal pr-12 line-clamp-2">{service.description}</div>
+                                                    {isSelected && <CheckCircle2 className="w-5 h-5 text-camfit-green absolute bottom-4 right-4" />}
+                                                </button>
+                                            </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Inline Detailed Description (Accordion) */}
-                                {isAnyInThisCategorySelected && selectedService && (
+                                {isAnyInThisCategorySelected && selectedService && category.ids.includes(selectedService) && (
                                     <div className="bg-emerald-50/50 border-2 border-camfit-green/30 rounded-2xl p-6 space-y-5 animate-in slide-in-from-top-2 duration-300">
                                         <div className="flex items-start justify-between">
                                             <div className="space-y-1">
@@ -254,7 +279,7 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                                                     {selectedService === 'coupon'
                                                         ? (totalScore >= 70
                                                             ? "사장님의 캠핑장은 이미 훌륭합니다! 작은 할인 혜택으로 망설이는 고객의 결제를 이끌어내세요."
-                                                            : "사장님 캠핑장은 할인쿠폰을 통해 할인 혜택을 제공하여 고객을 모아보세요.")
+                                                            : "할인쿠폰을 제공하여 주춤한 예약률을 즉시 끌어올려보세요.")
                                                         : SERVICES[selectedService].description}
                                                 </p>
                                             </div>
@@ -303,10 +328,10 @@ export function GrowthActionModal({ isOpen, onClose, recordId, vibeScore = 0, to
                     })}
                 </div>
 
-                <div className="p-4 bg-gray-50 text-center text-xs text-gray-400 font-medium flex-shrink-0 border-t">
+                <div className="p-4 bg-gray-50 text-center text-[10px] sm:text-xs text-gray-400 font-medium flex-shrink-0 border-t">
                     Camfit Partner Success Team · 100곳 한정 지원
                 </div>
-            </GlassCard >
-        </div >
+            </div>
+        </div>
     );
 }

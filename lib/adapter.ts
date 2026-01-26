@@ -18,8 +18,16 @@ export function normalizeV2Data(report: AnalysisReport) {
     // Ensure evaluation object exists
     const evaluation = report.evaluation || { vibe: "", hygiene: "", contents: "", season: "" };
 
+    // [New Formula V13] Weighted scoring: Vibe(35%), Hygiene(25%), Contents(25%), Season(15%)
+    const vScore = evaluation.vibe_score || 0;
+    const hScore = evaluation.hygiene_score || 0;
+    const cScore = evaluation.contents_score || 0;
+    const sScore = evaluation.season_score || 0;
+
+    const weightedScore = (vScore * 0.35) + (hScore * 0.25) + (cScore * 0.25) + (sScore * 0.15);
+
     return {
-        totalScore: Math.round(report.total_score || 0),
+        totalScore: Math.round(weightedScore),
         metrics: [
             {
                 id: "vibe",
