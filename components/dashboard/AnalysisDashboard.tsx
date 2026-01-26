@@ -150,9 +150,21 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 <div className="absolute top-0 right-0 w-64 h-64 bg-camfit-green/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                        <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V13)</h2>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
+                            <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V14)</h2>
+                        </div>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                alert("분석 결과 링크가 복사되었습니다. 이 링크는 사장님의 성장을 돕는 제안들이 포함되어 있으니, 꼭 지인이나 가족들에게만 공유해 주세요!");
+                            }}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 hover:bg-emerald-100 transition-colors text-[13px] font-bold shadow-sm"
+                        >
+                            <Copy className="w-3.5 h-3.5" />
+                            결과 링크 복사하기
+                        </button>
                     </div>
 
                     {(data as any).airtable_sync_failed && (
