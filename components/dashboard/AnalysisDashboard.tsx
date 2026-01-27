@@ -248,19 +248,44 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-3">
-                                {metrics.map((m) => (
-                                    <div key={m.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                                        <div>
-                                            <div className="text-[14px] font-bold text-gray-900">{m.label}</div>
-                                            <div className="text-[11px] text-gray-400 font-medium">{m.description}</div>
-                                        </div>
-                                        <div className="flex items-end gap-1 mt-2">
-                                            <span className="text-2xl font-black text-gray-900">{m.score}</span>
-                                            <span className="text-[11px] text-gray-400 font-bold pb-1">/100</span>
-                                        </div>
-                                    </div>
-                                ))}
+                            {/* V19: Click Simulation Banner */}
+                            <SimulationBanner totalScore={score} />
+
+                            {/* V19: Solution Impact Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <SolutionImpactCard
+                                    icon="📸"
+                                    title="사진 퀄리티 개선"
+                                    description="전문 촬영으로 시각적 경쟁력 강화"
+                                    currentValue={`${score >= 85 ? 60 : score >= 70 ? 40 : score >= 50 ? 20 : score >= 30 ? 10 : 5}명 클릭`}
+                                    improvedValue={`${Math.min(60, (score >= 85 ? 60 : score >= 70 ? 40 : score >= 50 ? 20 : score >= 30 ? 10 : 5) + 10)}명 클릭`}
+                                    improvement="+10명 증가 예상"
+                                    actionText="서비스 신청하기"
+                                    onClick={() => setIsModalOpen(true)}
+                                    color="green"
+                                />
+                                <SolutionImpactCard
+                                    icon="🏕️"
+                                    title="캠핑장 경쟁력 강화"
+                                    description="차별화 콘텐츠로 예약 전환율 향상"
+                                    currentValue="예약률 25%"
+                                    improvedValue="예약률 45%"
+                                    improvement="+20%p 증가 예상"
+                                    actionText="서비스 신청하기"
+                                    onClick={() => setIsModalOpen(true)}
+                                    color="blue"
+                                />
+                                <SolutionImpactCard
+                                    icon="💰"
+                                    title="예약률 최적화"
+                                    description="스마트 할인 쿠폰으로 전환 촉진"
+                                    currentValue="예약률 25%"
+                                    improvedValue="예약률 45%"
+                                    improvement="+20%p 증가 예상"
+                                    actionText="쿠폰 신청하기"
+                                    onClick={() => setIsModalOpen(true)}
+                                    color="purple"
+                                />
                             </div>
                         </div>
                     </div>
