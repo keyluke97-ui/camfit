@@ -137,26 +137,29 @@ export async function getAnalysisResult(recordId: string): Promise<AnalysisRepor
             one_line_intro: f["추천 한 줄 소개"] as string,
             description: f["추천 소개글 가이드"] as string,
 
-            // Reconstruct ranking from BEST photo fields (images only, no reasons)
+            // V18 Fix: Extract BEST photo URLs and reasons from Airtable
             ranking: [
-                ...(f["BEST 1 사진"] as any[] || []).length > 0 ? [{
+                ...((f["BEST 1 사진"] as any[] || []).length > 0 ? [{
                     rank: 1,
                     filename: "best_1.jpg",
                     category: "Main" as const,
-                    reason: ""
-                }] : [],
-                ...(f["BEST 2 사진"] as any[] || []).length > 0 ? [{
+                    reason: (f["BEST 1 사유"] as string) || "",
+                    url: (f["BEST 1 사진"] as any[])?.[0]?.url || ""
+                }] : []),
+                ...((f["BEST 2 사진"] as any[] || []).length > 0 ? [{
                     rank: 2,
                     filename: "best_2.jpg",
                     category: "Main" as const,
-                    reason: ""
-                }] : [],
-                ...(f["BEST 3 사진"] as any[] || []).length > 0 ? [{
+                    reason: (f["BEST 2 사유"] as string) || "",
+                    url: (f["BEST 2 사진"] as any[])?.[0]?.url || ""
+                }] : []),
+                ...((f["BEST 3 사진"] as any[] || []).length > 0 ? [{
                     rank: 3,
                     filename: "best_3.jpg",
                     category: "Main" as const,
-                    reason: ""
-                }] : []
+                    reason: (f["BEST 3 사유"] as string) || "",
+                    url: (f["BEST 3 사진"] as any[])?.[0]?.url || ""
+                }] : [])
             ],
             upsell_needed: (f["종합 점수"] as number) <= 77,
 
