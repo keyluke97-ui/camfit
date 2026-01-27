@@ -56,6 +56,12 @@ export async function saveAnalysisResult(data: AnalysisReport) {
             "콘텐츠 매력도": data.evaluation?.contents_score || 0,
             "계절감": data.evaluation?.season_score || 0,
 
+            // [NEW V17] Detailed comments for each metric
+            "비주얼 코멘트": data.evaluation?.vibe || "",
+            "청결 코멘트": data.evaluation?.hygiene || "",
+            "콘텐츠 코멘트": data.evaluation?.contents || "",
+            "계절감 코멘트": data.evaluation?.season || "",
+
             "에디터 핵심 전략": data.marketing_comment || "",
             "추천 한 줄 소개": (data.one_line_intro || "").trim(),
             "추천 소개글 가이드": data.description || "",
@@ -115,23 +121,40 @@ export async function getAnalysisResult(recordId: string): Promise<AnalysisRepor
                 hygiene_score: f["청결 안심 지수"] as number,
                 contents_score: f["콘텐츠 매력도"] as number,
                 season_score: f["계절감"] as number,
-                // We might need to store text comments if we want them back. 
-                // Currently only scores are stored individually, but marketing_comment has the text.
-                vibe: "", // Not stored individually in V1? 
-                hygiene: "",
-                contents: "",
-                season: ""
+                // Fetch detailed comments from new Airtable fields (V17)
+                vibe: f["비주얼 코멘트"] as string || "",
+                hygiene: f["청결 코멘트"] as string || "",
+                contents: f["콘텐츠 코멘트"] as string || "",
+                season: f["계절감 코멘트"] as string || ""
             },
             marketing_comment: f["에디터 핵심 전략"] as string,
             one_line_intro: f["추천 한 줄 소개"] as string,
             description: f["추천 소개글 가이드"] as string,
 
-            // Reconstruct minimal ranking for UI to not break, though reasons aren't saved yet
-            ranking: [],
+            // Reconstruct ranking from BEST photo fields (images only, no reasons)
+            ranking: [
+                ...(f["BEST 1 사진"] as any[] || []).length > 0 ? [{
+                    rank: 1,
+                    filename: "best_1.jpg",
+                    category: "Main" as const,
+                    reason: ""
+                }] : [],
+                ...(f["BEST 2 사진"] as any[] || []).length > 0 ? [{
+                    rank: 2,
+                    filename: "best_2.jpg",
+                    category: "Main" as const,
+                    reason: ""
+                }] : [],
+                ...(f["BEST 3 사진"] as any[] || []).length > 0 ? [{
+                    rank: 3,
+                    filename: "best_3.jpg",
+                    category: "Main" as const,
+                    reason: ""
+                }] : []
+            ],
             upsell_needed: (f["종합 점수"] as number) <= 77,
 
-            // Reconstruct Best Photos logic if needed, or just use uploadedUrls from attachments
-            // Creating a flat array from attachments for display
+            // All uploaded photos for general display
             uploadedUrls: (f["사진 업로드 (0/20)"] as any[])?.map((a: any) => a.url) || [],
 
             // Add recordId for future updates

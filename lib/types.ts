@@ -8,7 +8,7 @@ export interface PhotoRanking {
     rank: number;
     filename: string; // or ID/URL
     category: "Main" | "Facility" | "Activity" | "Season";
-    reason: string;
+    reason?: string; // Optional - not stored in Airtable
 }
 
 export interface AnalysisEvaluation {

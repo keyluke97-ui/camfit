@@ -382,35 +382,33 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 </div>
             </div>
 
-            {/* Upsell Floating Button with Low Score Emphasis */}
-            {!isHighQuality && (
-                <div className="fixed bottom-8 left-0 right-0 z-[60] flex justify-center px-6 pointer-events-none">
-                    <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md">
-                        {score <= 77 && (
-                            <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
-                                <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
-                                <span>캠핏의 서비스를 신청해보세요.</span>
-                            </div>
-                        )}
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-3 md:py-3 px-6 md:px-8 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 77 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
-                                }`}
-                        >
-                            <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
-                            <div className="flex items-center gap-2.5 justify-center w-full">
-                                <Sparkles className="w-5 h-5 text-camfit-dark" />
-                                <span className="text-[15px] md:text-[18px] tracking-tighter">
-                                    캠핏 전문가에게 진단받기
-                                </span>
-                            </div>
-                            <div className="absolute right-6 flex items-center pointer-events-none">
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </button>
-                    </div>
+            {/* Upsell Floating Button - Now shows for ALL scores */}
+            <div className="fixed bottom-8 left-0 right-0 z-[60] flex justify-center px-6 pointer-events-none">
+                <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md">
+                    {score <= 77 && (
+                        <div className="bg-black text-white text-[11px] font-bold px-4 py-1.5 rounded-full shadow-xl animate-bounce flex items-center gap-1.5 border border-white/20">
+                            <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+                            <span>캠핏의 서비스를 신청해보세요.</span>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className={`w-full bg-[#01DF82] text-[#1A1A1A] font-black py-3 md:py-3 px-6 md:px-8 rounded-2xl shadow-2xl shadow-green-500/40 hover:shadow-green-500/60 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 flex items-center justify-between group ring-4 ring-white relative overflow-hidden ${score <= 77 ? 'ring-offset-2 ring-emerald-500 animate-pulse-subtle' : ''
+                            }`}
+                    >
+                        <div className="absolute inset-x-0 top-0 h-[2px] bg-white/40" />
+                        <div className="flex items-center gap-2.5 justify-center w-full">
+                            <Sparkles className="w-5 h-5 text-camfit-dark" />
+                            <span className="text-[15px] md:text-[18px] tracking-tighter">
+                                캠핏 전문가에게 진단받기
+                            </span>
+                        </div>
+                        <div className="absolute right-6 flex items-center pointer-events-none">
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </button>
                 </div>
-            )}
+            </div>
 
             <style jsx global>{`
                 @keyframes pulse-subtle {
