@@ -10,7 +10,6 @@ import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 import { GrowthActionModal } from "@/components/dashboard/GrowthActionModal";
 import { SimulationBanner } from "@/components/dashboard/SimulationBanner";
-import { SolutionImpactCard } from "@/components/dashboard/SolutionImpactCard";
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -155,7 +154,7 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <Sparkles className="w-5 h-5 text-camfit-green animate-pulse" />
-                            <h2 className="text-lg font-bold text-camfit-green tracking-wide">AI 캠핑장 성장 분석 결과 (V14)</h2>
+                            <h2 className="text-lg font-bold text-camfit-green tracking-wide">숙소 건강검진 결과</h2>
                         </div>
                         <button
                             onClick={() => {
@@ -248,45 +247,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                                 </div>
                             )}
 
-                            {/* V19: Click Simulation Banner */}
+                            {/* V20: Simplified Click Simulation with Service Impact */}
                             <SimulationBanner totalScore={score} />
-
-                            {/* V19: Solution Impact Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                <SolutionImpactCard
-                                    icon="📸"
-                                    title="사진 퀄리티 개선"
-                                    description="전문 촬영으로 시각적 경쟁력 강화"
-                                    currentValue={`${score >= 85 ? 60 : score >= 70 ? 40 : score >= 50 ? 20 : score >= 30 ? 10 : 5}명 클릭`}
-                                    improvedValue={`${Math.min(60, (score >= 85 ? 60 : score >= 70 ? 40 : score >= 50 ? 20 : score >= 30 ? 10 : 5) + 10)}명 클릭`}
-                                    improvement="+10명 증가 예상"
-                                    actionText="서비스 신청하기"
-                                    onClick={() => setIsModalOpen(true)}
-                                    color="green"
-                                />
-                                <SolutionImpactCard
-                                    icon="🏕️"
-                                    title="캠핑장 경쟁력 강화"
-                                    description="차별화 콘텐츠로 예약 전환율 향상"
-                                    currentValue="예약률 25%"
-                                    improvedValue="예약률 45%"
-                                    improvement="+20%p 증가 예상"
-                                    actionText="서비스 신청하기"
-                                    onClick={() => setIsModalOpen(true)}
-                                    color="blue"
-                                />
-                                <SolutionImpactCard
-                                    icon="💰"
-                                    title="예약률 최적화"
-                                    description="스마트 할인 쿠폰으로 전환 촉진"
-                                    currentValue="예약률 25%"
-                                    improvedValue="예약률 45%"
-                                    improvement="+20%p 증가 예상"
-                                    actionText="쿠폰 신청하기"
-                                    onClick={() => setIsModalOpen(true)}
-                                    color="purple"
-                                />
-                            </div>
                         </div>
                     </div>
 
