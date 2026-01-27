@@ -9,6 +9,7 @@ export interface PhotoRanking {
     filename: string; // or ID/URL
     category: "Main" | "Facility" | "Activity" | "Season";
     reason?: string; // Optional - not stored in Airtable
+    url?: string; // Direct URL from Airtable attachment
 }
 
 export interface AnalysisEvaluation {

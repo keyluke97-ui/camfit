@@ -9,6 +9,8 @@ import { Sparkles, BarChart3, TrendingUp, AlertTriangle, Trophy, Quote, Copy, Ar
 import { AnalysisReport } from "@/lib/types";
 import { normalizeV2Data } from "@/lib/adapter"; // Adapter import
 import { GrowthActionModal } from "@/components/dashboard/GrowthActionModal";
+import { SimulationBanner } from "@/components/dashboard/SimulationBanner";
+import { SolutionImpactCard } from "@/components/dashboard/SolutionImpactCard";
 
 interface AnalysisDashboardProps {
     data: AnalysisReport | null;
@@ -339,7 +341,8 @@ export function AnalysisDashboard({ data, isLoading, files = [] }: AnalysisDashb
                 {/* Mobile: Horizontal Scroll, Desktop: Grid */}
                 <div className="md:grid md:grid-cols-3 md:gap-6 flex md:flex-none overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-4 pb-4 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0">
                     {(data?.ranking || []).map((item, idx) => {
-                        const imageUrl = getFileUrl(item.filename);
+                        // Use item.url first (from Airtable), fallback to getFileUrl for legacy data
+                        const imageUrl = item.url || getFileUrl(item.filename);
 
                         return (
                             <div key={idx} className="bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-white/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group min-w-[280px] md:min-w-0 snap-center">

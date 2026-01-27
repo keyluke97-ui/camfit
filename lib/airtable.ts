@@ -70,6 +70,12 @@ export async function saveAnalysisResult(data: AnalysisReport) {
             "BEST 1 사진": getBestUrl(1),
             "BEST 2 사진": getBestUrl(2),
             "BEST 3 사진": getBestUrl(3),
+
+            // [NEW V18] Best Photo reasons
+            "BEST 1 사유": data.ranking?.find(r => r.rank === 1)?.reason || "",
+            "BEST 2 사유": data.ranking?.find(r => r.rank === 2)?.reason || "",
+            "BEST 3 사유": data.ranking?.find(r => r.rank === 3)?.reason || "",
+
             "사진 업로드 (0/20)": (data.uploadedUrls || []).map(url => ({ url }))
         };
 
